@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/vyshn/Downloads/monsoon-coffee-co-store/apps/**)",
+      "Read(//c/Users/vyshn/Downloads/monsoon-coffee-co-store/apps/backend/**)"
+    ]
+  }
+}

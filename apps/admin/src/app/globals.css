@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --mc-primary-rgb: 198 142 79;
+  --mc-ink-rgb: 26 28 28;
+  --mc-accent-rgb: 131 84 26;
+  --mc-surface-rgb: 249 249 249;
+  --mc-secondary-rgb: 81 69 57;
+  --mc-muted-rgb: 53 53 53;
+}
+
+html, body {
+  background-color: rgb(var(--mc-surface-rgb));
+  color: rgb(var(--mc-ink-rgb));
+  font-family: Manrope, system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
