@@ -5,7 +5,9 @@ import { convertToLocale } from "@lib/util/money"
 import MonsoonAddressForm from "@modules/checkout/components/monsoon-address-form"
 import MonsoonPaymentPicker from "@modules/checkout/components/monsoon-payment-picker"
 import MonsoonShippingPicker from "@modules/checkout/components/monsoon-shipping-picker"
+import PhonePeButton from "@modules/checkout/components/phonepe-button"
 import { placeOrderAction } from "@modules/checkout/actions"
+import { isPhonePe } from "@lib/constants"
 import { CTAButton } from "@modules/common/components/monsoon/buttons"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { CheckIcon } from "@modules/common/icons/monsoon/check"
@@ -81,9 +83,11 @@ export default async function MonsoonCheckout({
   const currency = cart.currency_code
   const hasAddress = !!cart.shipping_address?.address_1
   const hasShippingMethod = !!cart.shipping_methods?.length
-  const hasPaymentSession = !!cart.payment_collection?.payment_sessions?.some(
+  const activePaymentSession = cart.payment_collection?.payment_sessions?.find(
     (s) => s.status === "pending"
   )
+  const hasPaymentSession = !!activePaymentSession
+  const usingPhonePe = isPhonePe(activePaymentSession?.provider_id)
 
   const canPlaceOrder = hasAddress && hasShippingMethod && hasPaymentSession
 
@@ -196,6 +200,24 @@ export default async function MonsoonCheckout({
                 <p className="font-family-base text-sm text-ink/65">
                   Complete the previous steps to enable order placement.
                 </p>
+              ) : usingPhonePe ? (
+                <div className="flex flex-col gap-4">
+                  <p className="font-family-base text-sm text-ink/65">
+                    By placing your order you confirm you have read and agree to
+                    Monsoon Coffee Co.&apos;s terms. You&apos;ll complete payment
+                    in PhonePe&apos;s secure checkout window.
+                  </p>
+                  <PhonePeButton
+                    cart={cart}
+                    countryCode={countryCode}
+                    className="w-full border-2 border-ink bg-ink py-4 font-family-heading text-lg font-bold uppercase tracking-[0.16em] text-surface hover:bg-surface hover:text-ink disabled:opacity-60"
+                  >
+                    {`Pay with PhonePe — ${convertToLocale({
+                      amount: cart.total ?? 0,
+                      currency_code: currency,
+                    })}`}
+                  </PhonePeButton>
+                </div>
               ) : (
                 <form action={placeOrderAction} className="flex flex-col gap-4">
                   <input

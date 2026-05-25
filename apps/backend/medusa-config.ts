@@ -38,5 +38,31 @@ module.exports = defineConfig({
   modules: [
     { resolve: "./src/modules/brew" },
     { resolve: "./src/modules/review" },
+    { resolve: "./src/modules/coffee-profile" },
+    {
+      resolve: "@medusajs/medusa/payment",
+      options: {
+        providers: [
+          {
+            resolve: "./src/modules/phonepe",
+            id: "phonepe",
+            options: {
+              client_id: process.env.PHONEPE_CLIENT_ID,
+              client_secret: process.env.PHONEPE_CLIENT_SECRET,
+              client_version: process.env.PHONEPE_CLIENT_VERSION ?? 1,
+              environment:
+                (process.env.PHONEPE_ENV as
+                  | "sandbox"
+                  | "production"
+                  | undefined) ?? "sandbox",
+              storefront_url:
+                process.env.STOREFRONT_URL ?? "http://localhost:8000",
+              webhook_username: process.env.PHONEPE_WEBHOOK_USERNAME,
+              webhook_password: process.env.PHONEPE_WEBHOOK_PASSWORD,
+            },
+          },
+        ],
+      },
+    },
   ],
 });

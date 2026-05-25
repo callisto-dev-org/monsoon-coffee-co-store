@@ -15,8 +15,7 @@ type Props = {
 
 const PROVIDER_LABELS: Record<string, string> = {
   pp_system_default: "Manual / Cash on Delivery",
-  pp_stripe_stripe: "Stripe — Card",
-  pp_stripe: "Stripe — Card",
+  pp_phonepe_phonepe: "PhonePe — UPI, Cards, Netbanking",
 }
 
 function labelFor(id: string) {

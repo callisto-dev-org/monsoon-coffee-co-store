@@ -6,7 +6,9 @@ import { HttpTypes } from "@medusajs/types"
 
 import MonsoonProductInfo from "@modules/products/components/monsoon-product-info"
 import MonsoonProductCarousel from "@modules/products/components/monsoon-carousel"
+import MonsoonCoffeeSpec from "@modules/products/components/monsoon-coffee-spec"
 import { listProductBrews } from "@lib/data/brews"
+import { getProductCoffeeProfile } from "@lib/data/coffee-profiles"
 import { listProductReviews } from "@lib/data/reviews"
 
 const MonsoonBrewLab = dynamic(
@@ -54,9 +56,10 @@ const ProductTemplate = async ({
     product.title?.toUpperCase() ?? "MONSOON BLEND",
   ]
 
-  const [brews, reviewsData] = await Promise.all([
+  const [brews, reviewsData, coffeeProfile] = await Promise.all([
     listProductBrews(product.id),
     listProductReviews(product.id),
+    getProductCoffeeProfile(product.id),
   ])
 
   return (
@@ -68,6 +71,7 @@ const ProductTemplate = async ({
         cart={cart}
       />
       <MonsoonProductCarousel items={highlightItems} />
+      {coffeeProfile && <MonsoonCoffeeSpec profile={coffeeProfile} />}
       <MonsoonBrewLab brews={brews} />
       <div id="reviews" className="w-full">
         <MonsoonReviews

@@ -40,13 +40,14 @@ export const getCacheOptions = async (
     return {}
   }
 
+  // Always include the stable global tag so the backend's revalidation
+  // webhook (which doesn't know per-visitor cacheIds) can invalidate every
+  // visitor's cached payload by hitting the bare tag name.
+  const tags = [tag]
   const cacheTag = await getCacheTag(tag)
+  if (cacheTag) tags.push(cacheTag)
 
-  if (!cacheTag) {
-    return {}
-  }
-
-  return { tags: [`${cacheTag}`] }
+  return { tags }
 }
 
 export const setAuthToken = async (token: string) => {

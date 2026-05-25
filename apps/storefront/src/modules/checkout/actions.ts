@@ -173,7 +173,7 @@ export async function initPayment(formData: FormData) {
 
 export async function placeOrderAction(formData: FormData) {
   const countryCode =
-    (formData.get("country_code") as string | null)?.toLowerCase() || "us"
+    (formData.get("country_code") as string | null)?.toLowerCase() || "in"
   try {
     // Safety net: auto-pick a shipping method if none is selected yet.
     // The UI picker is the primary path; this catches edge cases.
@@ -184,6 +184,25 @@ export async function placeOrderAction(formData: FormData) {
     const message = e instanceof Error ? e.message : "Could not place order"
     redirect(
       `/${countryCode}/checkout?error=${encodeURIComponent(message)}`
+    )
+  }
+}
+
+export async function placePhonePeOrder(input: {
+  cartId: string
+  countryCode: string
+}) {
+  const cacheTag = await getCacheTag("carts")
+  revalidateTag(cacheTag)
+
+  try {
+    await placeOrder(input.cartId)
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Could not place order"
+    redirect(
+      `/${input.countryCode.toLowerCase()}/checkout?error=${encodeURIComponent(
+        message
+      )}`
     )
   }
 }

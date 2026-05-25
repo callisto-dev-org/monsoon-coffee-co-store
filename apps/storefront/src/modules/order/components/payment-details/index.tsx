@@ -1,4 +1,4 @@
-import { isStripeLike, paymentInfoMap } from "@lib/constants"
+import { paymentInfoMap } from "@lib/constants"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 
@@ -39,14 +39,12 @@ const PaymentDetails = ({ order }: PaymentDetailsProps) => {
                 className="font-family-base text-base text-ink/85"
                 data-testid="payment-amount"
               >
-                {isStripeLike(payment.provider_id) && payment.data?.card_last4
-                  ? `**** **** **** ${payment.data.card_last4}`
-                  : `${convertToLocale({
-                      amount: payment.amount,
-                      currency_code: order.currency_code,
-                    })} paid at ${new Date(
-                      payment.created_at ?? ""
-                    ).toLocaleString()}`}
+                {`${convertToLocale({
+                  amount: payment.amount,
+                  currency_code: order.currency_code,
+                })} paid at ${new Date(
+                  payment.created_at ?? ""
+                ).toLocaleString()}`}
               </span>
             </div>
           </div>

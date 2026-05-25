@@ -57,5 +57,5 @@ export const getRegion = async (countryCode: string) => {
     })
   })
 
-  return countryCode ? regionMap.get(countryCode) : regionMap.get("us")
+  return countryCode ? regionMap.get(countryCode) : regionMap.get("in")
 }
