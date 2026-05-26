@@ -1,23 +1,22 @@
-import Image from "next/image"
 import { HttpTypes } from "@medusajs/types"
 
 import { convertToLocale } from "@lib/util/money"
 import MonsoonAddressForm from "@modules/checkout/components/monsoon-address-form"
 import MonsoonPaymentPicker from "@modules/checkout/components/monsoon-payment-picker"
-import MonsoonShippingPicker from "@modules/checkout/components/monsoon-shipping-picker"
 import PhonePeButton from "@modules/checkout/components/phonepe-button"
 import { placeOrderAction } from "@modules/checkout/actions"
 import { isPhonePe } from "@lib/constants"
 import { CTAButton } from "@modules/common/components/monsoon/buttons"
-import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { CheckIcon } from "@modules/common/icons/monsoon/check"
+import { PincodeEstimateProvider } from "@modules/checkout/components/pincode-estimate-context"
+import AddressPincodeCheck from "@modules/checkout/components/address-pincode-check"
+import CheckoutYourBag from "@modules/checkout/components/checkout-your-bag"
 
 type Props = {
   cart: HttpTypes.StoreCart
   region: HttpTypes.StoreRegion
   customer: HttpTypes.StoreCustomer | null
   paymentProviders: { id: string }[]
-  shippingOptions: HttpTypes.StoreCartShippingOption[]
   countryCode: string
   errorMessage?: string
 }
@@ -76,7 +75,6 @@ export default async function MonsoonCheckout({
   region,
   customer,
   paymentProviders,
-  shippingOptions,
   countryCode,
   errorMessage,
 }: Props) {
@@ -92,6 +90,7 @@ export default async function MonsoonCheckout({
   const canPlaceOrder = hasAddress && hasShippingMethod && hasPaymentSession
 
   return (
+   <PincodeEstimateProvider>
     <main className="mx-auto w-full max-w-[88rem] px-6 pb-24 pt-12 sm:px-8 lg:px-12">
       <section className="border-b border-ink/30 pb-6">
         <p className="font-family-heading text-xs font-bold uppercase tracking-[0.18em] text-accent">
@@ -114,26 +113,39 @@ export default async function MonsoonCheckout({
           <section className="flex flex-col gap-5">
             <StepHeader index={1} title="Shipping Address" done={hasAddress} />
             {hasAddress ? (
-              <details className="border-2 border-ink bg-surface p-5">
-                <summary className="flex cursor-pointer items-center justify-between gap-4 font-family-heading text-sm font-bold uppercase tracking-[0.16em] text-ink">
-                  <AddressSummary address={cart.shipping_address!} />
-                  <span className="text-xs underline underline-offset-4 text-accent">
-                    Edit
-                  </span>
-                </summary>
-                <div className="mt-6 border-t border-ink/15 pt-6">
-                  <MonsoonAddressForm
-                    cart={cart}
-                    region={region}
-                    customerEmail={customer?.email ?? null}
-                    isAuthenticated={!!customer}
-                    hasDefaultShipping={
-                      !!customer?.addresses?.some((a) => a.is_default_shipping)
-                    }
-                    addresses={customer?.addresses ?? []}
-                  />
-                </div>
-              </details>
+              <div className="border-2 border-ink bg-surface p-5">
+                <details>
+                  <summary className="flex cursor-pointer items-center justify-between gap-4 font-family-heading text-sm font-bold uppercase tracking-[0.16em] text-ink">
+                    <AddressSummary address={cart.shipping_address!} />
+                    <span className="text-xs underline underline-offset-4 text-accent">
+                      Edit
+                    </span>
+                  </summary>
+                  <div className="mt-6 border-t border-ink/15 pt-6">
+                    <MonsoonAddressForm
+                      cart={cart}
+                      region={region}
+                      customerEmail={customer?.email ?? null}
+                      isAuthenticated={!!customer}
+                      hasDefaultShipping={
+                        !!customer?.addresses?.some(
+                          (a) => a.is_default_shipping
+                        )
+                      }
+                      addresses={customer?.addresses ?? []}
+                    />
+                  </div>
+                </details>
+                <AddressPincodeCheck
+                  cartId={cart.id}
+                  currency={currency}
+                  postalCode={
+                    cart.shipping_address?.postal_code
+                      ?.toString()
+                      .replace(/\D/g, "") ?? null
+                  }
+                />
+              </div>
             ) : (
               <div className="border-2 border-ink bg-surface p-5 sm:p-6">
                 <MonsoonAddressForm
@@ -150,40 +162,26 @@ export default async function MonsoonCheckout({
             )}
           </section>
 
-          {/* Step 2: Shipping Method */}
+          {/* Step 2: Payment */}
           <section className="flex flex-col gap-5">
             <StepHeader
               index={2}
-              title="Shipping Method"
-              done={hasShippingMethod}
-            />
-            {!hasAddress ? (
-              <p className="border-2 border-ink/30 bg-surface p-5 font-family-base text-sm text-ink/65">
-                Save your shipping address before choosing a shipping method.
-              </p>
-            ) : (
-              <div className="border-2 border-ink bg-surface p-5 sm:p-6">
-                <MonsoonShippingPicker
-                  cart={cart}
-                  shippingOptions={shippingOptions}
-                />
-              </div>
-            )}
-          </section>
-
-          {/* Step 3: Payment */}
-          <section className="flex flex-col gap-5">
-            <StepHeader
-              index={3}
               title="Payment Method"
               done={hasPaymentSession}
             />
-            {!hasShippingMethod ? (
+            {!hasAddress ? (
               <p className="border-2 border-ink/30 bg-surface p-5 font-family-base text-sm text-ink/65">
-                Choose a shipping method before selecting a payment method.
+                Save your shipping address before selecting a payment method.
               </p>
             ) : (
               <div className="border-2 border-ink bg-surface p-5 sm:p-6">
+                {!hasShippingMethod && (
+                  <p className="mb-4 border-2 border-amber-600 bg-amber-50 p-3 font-family-heading text-xs font-bold uppercase tracking-[0.14em] text-amber-800">
+                    Heads up: no delivery option attached to your bag yet.
+                    We&apos;ll try to attach one when you place the order — if it
+                    fails, you&apos;ll see the reason here.
+                  </p>
+                )}
                 <MonsoonPaymentPicker
                   providers={paymentProviders}
                   cart={cart}
@@ -192,9 +190,9 @@ export default async function MonsoonCheckout({
             )}
           </section>
 
-          {/* Step 4: Review & Place */}
+          {/* Step 3: Review & Place */}
           <section className="flex flex-col gap-5">
-            <StepHeader index={4} title="Review & Place Order" />
+            <StepHeader index={3} title="Review & Place Order" />
             <div className="border-2 border-ink bg-surface p-5 sm:p-6">
               {!canPlaceOrder ? (
                 <p className="font-family-base text-sm text-ink/65">
@@ -245,107 +243,9 @@ export default async function MonsoonCheckout({
           </section>
         </div>
 
-        {/* Order Summary */}
-        <aside className="h-fit border-2 border-ink bg-surface p-6 shadow-[8px_8px_0px_0px_var(--mc-ink)] lg:sticky lg:top-8">
-          <h2 className="font-family-heading text-3xl font-black uppercase text-ink">
-            Your Bag
-          </h2>
-
-          <ul className="mt-4 flex flex-col gap-4 border-t border-ink/20 pt-4">
-            {cart.items?.map((item) => (
-              <li key={item.id} className="flex gap-3">
-                <div className="relative h-16 w-16 shrink-0 border border-ink/40">
-                  <Image
-                    src={item.thumbnail || "/monsoon/images/coffeebags.png"}
-                    alt={item.product_title ?? "Product"}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex flex-1 flex-col">
-                  <p className="font-family-heading text-sm font-bold uppercase text-ink">
-                    {item.product_title}
-                  </p>
-                  <p className="font-family-heading text-xs font-medium uppercase tracking-widest text-ink/55">
-                    QTY {item.quantity}
-                  </p>
-                </div>
-                <p className="font-family-heading text-sm font-black text-ink">
-                  {convertToLocale({
-                    amount: (item.unit_price ?? 0) * item.quantity,
-                    currency_code: currency,
-                  })}
-                </p>
-              </li>
-            ))}
-          </ul>
-
-          <dl className="mt-6 border-t border-ink/20 pt-4 font-family-heading text-sm uppercase">
-            <div className="flex items-center justify-between py-1">
-              <dt className="font-semibold text-ink/75">Subtotal</dt>
-              <dd className="font-bold text-ink">
-                {convertToLocale({
-                  amount: cart.subtotal ?? 0,
-                  currency_code: currency,
-                })}
-              </dd>
-            </div>
-            <div className="flex items-center justify-between py-1">
-              <dt
-                className={`font-semibold ${
-                  hasShippingMethod ? "text-ink/75" : "text-ink/45"
-                }`}
-              >
-                Shipping
-                {hasShippingMethod && cart.shipping_methods?.[0]?.name && (
-                  <span className="ml-2 font-family-base text-[10px] font-normal normal-case tracking-normal text-ink/55">
-                    {cart.shipping_methods[0].name}
-                  </span>
-                )}
-              </dt>
-              <dd
-                className={`font-bold ${
-                  hasShippingMethod ? "text-ink" : "text-ink/55"
-                }`}
-              >
-                {hasShippingMethod
-                  ? convertToLocale({
-                      amount: cart.shipping_total ?? 0,
-                      currency_code: currency,
-                    })
-                  : "TBD"}
-              </dd>
-            </div>
-            <div className="flex items-center justify-between py-1">
-              <dt className="font-semibold text-ink/45">Tax</dt>
-              <dd className="font-bold text-ink/55">
-                {convertToLocale({
-                  amount: cart.tax_total ?? 0,
-                  currency_code: currency,
-                })}
-              </dd>
-            </div>
-            <div className="mt-3 border-t border-ink/20 pt-3 flex items-end justify-between">
-              <dt className="font-family-heading text-xs font-bold uppercase tracking-[0.18em] text-ink/70">
-                Total
-              </dt>
-              <dd className="font-family-heading text-3xl font-black text-ink">
-                {convertToLocale({
-                  amount: cart.total ?? 0,
-                  currency_code: currency,
-                })}
-              </dd>
-            </div>
-          </dl>
-
-          <LocalizedClientLink
-            href="/cart"
-            className="mt-6 inline-block font-family-heading text-xs font-bold uppercase tracking-[0.18em] underline underline-offset-4 text-ink/65 hover:text-ink"
-          >
-            ← Edit Bag
-          </LocalizedClientLink>
-        </aside>
+        <CheckoutYourBag cart={cart} />
       </div>
     </main>
+   </PincodeEstimateProvider>
   )
 }

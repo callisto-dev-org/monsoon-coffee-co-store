@@ -2,6 +2,7 @@
 
 import { XMark } from "@medusajs/icons"
 import { HttpTypes } from "@medusajs/types"
+import type { OrderTrackingResponse } from "@lib/data/orders"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import Help from "@modules/order/components/help"
 import Items from "@modules/order/components/items"
@@ -9,14 +10,17 @@ import OrderActions from "@modules/order/components/order-actions"
 import OrderDetails from "@modules/order/components/order-details"
 import OrderSummary from "@modules/order/components/order-summary"
 import ShippingDetails from "@modules/order/components/shipping-details"
+import TrackingDetails from "@modules/order/components/tracking-details"
 import React from "react"
 
 type OrderDetailsTemplateProps = {
   order: HttpTypes.StoreOrder
+  tracking?: OrderTrackingResponse | null
 }
 
 const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
   order,
+  tracking,
 }) => {
   return (
     <main className="w-full px-6 pb-24 pt-14 sm:px-8 lg:px-10 xl:px-12">
@@ -53,6 +57,10 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
             Items
           </h2>
           <Items order={order} />
+        </section>
+
+        <section className="border-2 border-ink bg-surface p-6 sm:p-8 shadow-[4px_4px_0px_0px_var(--mc-ink)]">
+          <TrackingDetails tracking={tracking ?? null} />
         </section>
 
         <section className="border-2 border-ink bg-surface p-6 sm:p-8 shadow-[4px_4px_0px_0px_var(--mc-ink)]">

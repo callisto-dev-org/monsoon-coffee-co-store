@@ -4,13 +4,10 @@ import { redirect } from "next/navigation"
 import { retrieveCart, updateCart } from "@lib/data/cart"
 import { retrieveCustomer } from "@lib/data/customer"
 import { listCartPaymentMethods } from "@lib/data/payment"
-import {
-  calculatePriceForShippingOption,
-  listCartShippingMethods,
-} from "@lib/data/fulfillment"
+import { listCartShippingMethods } from "@lib/data/fulfillment"
 import { getRegion } from "@lib/data/regions"
 import MonsoonCheckout from "@modules/checkout/templates/monsoon-checkout"
-import { HttpTypes } from "@medusajs/types"
+import { ensureShippingSelected } from "@modules/checkout/actions"
 
 export const metadata: Metadata = {
   title: "Checkout — Monsoon Coffee Co.",
@@ -89,16 +86,24 @@ export default async function CheckoutPage(props: {
 
   const hasAddress = !!cart.shipping_address?.address_1
 
-  const [paymentProviders, rawShippingOptions] = await Promise.all([
-    listCartPaymentMethods(region.id).catch(() => null),
-    hasAddress
-      ? listCartShippingMethods(cart.id).catch(() => null)
-      : Promise.resolve(null),
-  ])
+  // Auto-pick a shipping method as soon as we have an address — the
+  // checkout no longer asks the customer to choose one. ensureShippingSelected
+  // is a no-op when a method is already attached.
+  if (hasAddress && !cart.shipping_methods?.length) {
+    try {
+      const options = await listCartShippingMethods(cart.id).catch(() => null)
+      if (options?.length) {
+        await ensureShippingSelected()
+        cart = (await retrieveCart()) ?? cart
+      }
+    } catch {
+      // Best-effort — placeOrderAction also calls ensureShippingSelected as a
+      // safety net before placing the order.
+    }
+  }
 
-  const shippingOptions = await resolveShippingPrices(
-    rawShippingOptions ?? [],
-    cart.id
+  const paymentProviders = await listCartPaymentMethods(region.id).catch(
+    () => null
   )
 
   return (
@@ -107,23 +112,8 @@ export default async function CheckoutPage(props: {
       region={region}
       customer={customer}
       paymentProviders={paymentProviders ?? []}
-      shippingOptions={shippingOptions}
       countryCode={countryCode}
       errorMessage={error}
     />
-  )
-}
-
-async function resolveShippingPrices(
-  options: HttpTypes.StoreCartShippingOption[],
-  cartId: string
-): Promise<HttpTypes.StoreCartShippingOption[]> {
-  return Promise.all(
-    options.map(async (opt) => {
-      if (opt.price_type !== "calculated") return opt
-      const calculated = await calculatePriceForShippingOption(opt.id, cartId)
-      if (!calculated) return opt
-      return { ...opt, amount: calculated.amount }
-    })
   )
 }

@@ -46,3 +46,37 @@ export async function listProductBrews(productId: string): Promise<BrewRecipe[]>
     return []
   }
 }
+
+const FALLBACK_PRODUCT_TYPE_VALUE = "coffee"
+
+/**
+ * Whether the brew lab section should render for a product. Pulls the list
+ * of enabled product type IDs from /store/brew-settings; falls back to a
+ * product type with value "coffee" when no setting has been saved yet.
+ */
+export async function isBrewLabEnabledForProduct(product: {
+  type_id?: string | null
+  type?: { id?: string | null; value?: string | null } | null
+}): Promise<boolean> {
+  const typeId = product.type_id ?? product.type?.id ?? null
+  const typeValue = product.type?.value ?? null
+
+  let enabledIds: string[] = []
+  try {
+    const res = await sdk.client.fetch<{ enabled_product_type_ids: string[] }>(
+      "/store/brew-settings",
+      { method: "GET", cache: "no-store" }
+    )
+    enabledIds = res?.enabled_product_type_ids ?? []
+  } catch {
+    enabledIds = []
+  }
+
+  if (enabledIds.length > 0) {
+    return !!typeId && enabledIds.includes(typeId)
+  }
+  return (
+    typeof typeValue === "string" &&
+    typeValue.toLowerCase() === FALLBACK_PRODUCT_TYPE_VALUE
+  )
+}

@@ -7,7 +7,7 @@ import { HttpTypes } from "@medusajs/types"
 import MonsoonProductInfo from "@modules/products/components/monsoon-product-info"
 import MonsoonProductCarousel from "@modules/products/components/monsoon-carousel"
 import MonsoonCoffeeSpec from "@modules/products/components/monsoon-coffee-spec"
-import { listProductBrews } from "@lib/data/brews"
+import { isBrewLabEnabledForProduct, listProductBrews } from "@lib/data/brews"
 import { getProductCoffeeProfile } from "@lib/data/coffee-profiles"
 import { listProductReviews } from "@lib/data/reviews"
 
@@ -56,10 +56,14 @@ const ProductTemplate = async ({
     product.title?.toUpperCase() ?? "MONSOON BLEND",
   ]
 
-  const [brews, reviewsData, coffeeProfile] = await Promise.all([
+  const [brews, reviewsData, coffeeProfile, brewLabEnabled] = await Promise.all([
     listProductBrews(product.id),
     listProductReviews(product.id),
     getProductCoffeeProfile(product.id),
+    isBrewLabEnabledForProduct({
+      type_id: (product as { type_id?: string | null }).type_id ?? null,
+      type: (product as { type?: { id?: string; value?: string } }).type ?? null,
+    }),
   ])
 
   return (
@@ -72,7 +76,7 @@ const ProductTemplate = async ({
       />
       <MonsoonProductCarousel items={highlightItems} />
       {coffeeProfile && <MonsoonCoffeeSpec profile={coffeeProfile} />}
-      <MonsoonBrewLab brews={brews} />
+      {brewLabEnabled && <MonsoonBrewLab brews={brews} />}
       <div id="reviews" className="w-full">
         <MonsoonReviews
           productId={product.id}
