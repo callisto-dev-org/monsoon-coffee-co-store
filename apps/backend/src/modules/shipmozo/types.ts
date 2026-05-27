@@ -27,9 +27,8 @@ export type ShipmozoOptions = {
   /** Origin pincode used by /rate-calculator at checkout. */
   warehouse_pincode?: string
   /**
-   * Optional: prefer this courier id from /rate-calculator when picking
-   * the cheapest serviceable rate at checkout. Courier assignment for the
-   * pushed order is performed by the operator in the Shipmozo panel.
+   * Optional: lock rate-calculator quotes to a single courier id. When
+   * unset, the cheapest serviceable courier from /rate-calculator is used.
    */
   default_courier_id?: string | number
   /** type_of_package field on /rate-calculator. Defaults to "SPS". */
@@ -47,13 +46,6 @@ export type ShipmozoOptions = {
   default_length_cm?: number
   default_breadth_cm?: number
   default_height_cm?: number
-  /**
-   * Optional public tracking URL pattern. Use `{awb}` as placeholder. The
-   * resolved URL is stored on the Fulfillment label so the admin can open
-   * tracking with one click. Example:
-   *   "https://shipmozo.com/tracking/{awb}"
-   */
-  tracking_url_template?: string
   /**
    * Payment provider IDs (from Medusa's payment module) that should be
    * treated as Cash-on-Delivery when pushing the order to Shipmozo. Match
@@ -180,17 +172,8 @@ export type ShipmozoServiceabilityResult = {
   serviceable?: boolean
 }
 
-// Data stored on the fulfillment after createFulfillment() and progressively
-// enriched by the Shipmozo status webhook. Kept here so cancelFulfillment /
-// getFulfillmentDocuments / the storefront tracking endpoint can read it
-// back type-safely.
-export type ShipmozoScan = {
-  date?: string
-  status?: string
-  location?: string
-  remarks?: string
-}
-
+// Data stored on the fulfillment after createFulfillment(). Kept here so
+// cancelFulfillment / getFulfillmentDocuments can read it back type-safely.
 export type ShipmozoFulfillmentData = {
   order_id: string
   awb_number?: string
@@ -199,32 +182,21 @@ export type ShipmozoFulfillmentData = {
   reference_id?: string
   label_url?: string
   tracking_url?: string
-  // Webhook-populated fields
-  delivery_partner_name?: string
-  delivery_partner_phone?: string
-  expected_delivery_date?: string
-  shipment_type?: string
   current_status?: string
   status_time?: string
-  scan_history?: ShipmozoScan[]
 }
 
-// Shape of the status-update webhook Shipmozo posts when a shipment changes
-// state. Field names mirror the wire payload — including Shipmozo's typo of
-// "refrence_id" and "delhivery_*".
+// ─── Webhook payload (Settings → Webhook in the Shipmozo panel) ──────────
+// Shipmozo posts shipment status updates here. `reference_id` is the
+// merchant-supplied id we sent on /push-order (we use `mc_<display_id>`),
+// while `order_id` is Shipmozo's internal id.
 export type ShipmozoWebhookPayload = {
   order_id?: string
-  refrence_id?: string
   reference_id?: string
+  /** Typo seen in some Shipmozo webhook payloads. */
+  refrence_id?: string
   awb_number?: string
   carrier?: string
-  delhivery_name?: string
-  delhivery_phone?: string
-  delivery_name?: string
-  delivery_phone?: string
-  expected_delivery_date?: string
-  shipment_type?: string
   current_status?: string
   status_time?: string
-  status_feed?: { scan?: ShipmozoScan[] }
 }

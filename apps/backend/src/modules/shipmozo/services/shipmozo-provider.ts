@@ -227,9 +227,8 @@ class ShipmozoProviderService extends AbstractFulfillmentProviderService {
   // ──────────────────────────────────────────────────────────────────────
   // Fulfillment lifecycle
   //
-  // We only register the order with Shipmozo via /push-order. Courier
-  // assignment and pickup scheduling are handled by the operator from the
-  // Shipmozo panel — no AWB or label is issued at this stage.
+  // We only call /push-order here. Courier assignment and pickup
+  // scheduling are handled by the operator in the Shipmozo panel.
   // ──────────────────────────────────────────────────────────────────────
   async createFulfillment(
     data: Record<string, unknown>,
@@ -387,9 +386,8 @@ class ShipmozoProviderService extends AbstractFulfillmentProviderService {
       gstin_number: "",
     }
 
-    // Push the order. Courier assignment and pickup scheduling happen in
-    // the Shipmozo panel — we do not call /auto-assign-order or
-    // /assign-courier here.
+    // Push the order. Courier assignment and pickup scheduling are done
+    // by the operator in the Shipmozo panel — we don't auto-assign here.
     const pushResult = await this.shipmozoRequest<ShipmozoPushOrderResult>(
       "/push-order",
       {
@@ -715,11 +713,6 @@ class ShipmozoProviderService extends AbstractFulfillmentProviderService {
       parts.push(envelope?.message || rawText || `HTTP ${status}`)
     }
     return parts.join(" | ")
-  }
-
-  private buildTrackingUrl(awb: string | undefined): string | undefined {
-    if (!awb || !this.options_.tracking_url_template) return undefined
-    return this.options_.tracking_url_template.replace(/\{awb\}/g, awb)
   }
 
   /**

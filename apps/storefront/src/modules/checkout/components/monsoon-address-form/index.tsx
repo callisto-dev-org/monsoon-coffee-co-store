@@ -63,7 +63,7 @@ function Field({
               }
             : undefined
         }
-        className={`h-12 border-2 ${
+        className={`h-12 w-full min-w-0 border-2 ${
           error ? "border-red-700" : "border-ink"
         } bg-surface px-4 font-family-base text-ink focus:outline-none`}
       />
@@ -156,36 +156,39 @@ export default function MonsoonAddressForm({
   const defaultSaveChecked = !hasDefaultShipping
 
   return (
-    <form action={formAction} className="flex flex-col gap-5" noValidate>
+    <form action={formAction} className="flex min-w-0 flex-col gap-5" noValidate>
       {pickableAddresses.length > 0 && (
-        <div className="flex flex-col gap-3 border-2 border-ink/15 bg-ink/5 p-4">
+        <div className="flex min-w-0 flex-col gap-3 border-2 border-ink/15 bg-ink/5 p-4">
           <p className="font-family-heading text-xs font-bold uppercase tracking-[0.16em] text-accent">
             Use a saved address
           </p>
           <select
             value={selectedId}
             onChange={(e) => setSelectedId(e.target.value)}
-            className="h-12 border-2 border-ink bg-surface px-4 font-family-base text-ink focus:outline-none"
+            className="h-12 w-full min-w-0 max-w-full truncate border-2 border-ink bg-surface px-4 font-family-base text-ink focus:outline-none"
             data-testid="saved-address-select"
           >
-            {pickableAddresses.map((a) => (
-              <option key={a.id} value={a.id}>
-                {[
-                  a.is_default_shipping ? "★" : null,
-                  [a.first_name, a.last_name].filter(Boolean).join(" "),
-                  [a.address_1, a.city, a.postal_code]
-                    .filter(Boolean)
-                    .join(", "),
-                ]
+            {pickableAddresses.map((a) => {
+              const label = [
+                a.is_default_shipping ? "★" : null,
+                [a.first_name, a.last_name].filter(Boolean).join(" "),
+                [a.address_1, a.city, a.postal_code]
                   .filter(Boolean)
-                  .join(" — ")}
-              </option>
-            ))}
+                  .join(", "),
+              ]
+                .filter(Boolean)
+                .join(" — ")
+              return (
+                <option key={a.id} value={a.id}>
+                  {label}
+                </option>
+              )
+            })}
             <option value={MANUAL}>Enter a new address…</option>
           </select>
 
           {selectedId !== MANUAL && seed && (
-            <div className="mt-1 border-2 border-ink bg-surface p-4 font-family-base text-sm text-ink/80">
+            <div className="mt-1 min-w-0 break-words border-2 border-ink bg-surface p-4 font-family-base text-sm text-ink/80">
               <p className="font-family-heading text-xs font-bold uppercase tracking-[0.12em] text-ink">
                 {[seed.first_name, seed.last_name].filter(Boolean).join(" ")}
               </p>
@@ -197,7 +200,7 @@ export default function MonsoonAddressForm({
                   .join(", ")}
               </p>
               <p className="uppercase">{seed.country_code}</p>
-              {seed.phone && <p>{seed.phone}</p>}
+              {seed.phone && <p className="font-mono tabular-nums">{seed.phone}</p>}
             </div>
           )}
         </div>
@@ -332,7 +335,7 @@ export default function MonsoonAddressForm({
                 region.countries?.[0]?.iso_2 ??
                 ""
               }
-              className={`h-12 border-2 ${
+              className={`h-12 w-full min-w-0 border-2 ${
                 state.errors.country_code ? "border-red-700" : "border-ink"
               } bg-surface px-4 font-family-base text-ink focus:outline-none`}
             >
@@ -365,28 +368,30 @@ export default function MonsoonAddressForm({
         )}
       </div>
 
-      <label className="mt-1 inline-flex items-center gap-2 font-family-heading text-xs font-bold uppercase tracking-widest text-ink/70">
+      <label className="mt-1 flex items-start gap-2 font-family-heading text-[11px] font-bold uppercase leading-snug tracking-[0.14em] text-ink/70 sm:items-center sm:text-xs sm:tracking-widest">
         <input
           type="checkbox"
           name="same_as_billing"
           defaultChecked
-          className="h-4 w-4 accent-accent"
+          className="mt-0.5 h-4 w-4 shrink-0 accent-accent sm:mt-0"
         />
-        Billing address same as shipping
+        <span className="min-w-0">Billing address same as shipping</span>
       </label>
 
       {isAuthenticated && (
-        <label className="inline-flex items-center gap-2 font-family-heading text-xs font-bold uppercase tracking-widest text-ink/70">
+        <label className="flex items-start gap-2 font-family-heading text-[11px] font-bold uppercase leading-snug tracking-[0.14em] text-ink/70 sm:items-center sm:text-xs sm:tracking-widest">
           <input
             type="checkbox"
             name="save_as_default_shipping"
             defaultChecked={defaultSaveChecked}
-            className="h-4 w-4 accent-accent"
+            className="mt-0.5 h-4 w-4 shrink-0 accent-accent sm:mt-0"
             data-testid="save-as-default-shipping"
           />
-          {hasDefaultShipping
-            ? "Replace my default shipping address with this one"
-            : "Save as my default shipping address"}
+          <span className="min-w-0">
+            {hasDefaultShipping
+              ? "Replace my default shipping address with this one"
+              : "Save as my default shipping address"}
+          </span>
         </label>
       )}
 
@@ -399,7 +404,7 @@ export default function MonsoonAddressForm({
       <OutlineButton
         type="submit"
         color="ink"
-        className="mt-2 px-6 py-3 font-family-heading text-sm font-bold uppercase tracking-[0.18em] text-ink hover:bg-ink hover:text-surface disabled:opacity-50"
+        className="mt-2 w-full px-5 py-3 font-family-heading text-xs font-bold uppercase tracking-[0.16em] text-ink hover:bg-ink hover:text-surface disabled:opacity-50 sm:w-auto sm:self-start sm:px-6 sm:text-sm sm:tracking-[0.18em]"
         disabled={isPending}
       >
         {isPending

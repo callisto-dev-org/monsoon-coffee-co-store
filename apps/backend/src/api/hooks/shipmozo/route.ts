@@ -37,7 +37,7 @@ type OrderRow = {
 
 /**
  * Shipmozo posts here whenever a shipment changes state — pickup completed,
- * in transit, out for delivery, delivered, undelivered, cancelled, RTO. We
+ * in transit, out for delivery, delivered, undelivered, cancelled, RTO.
  *
  *   1. persist the latest tracking snapshot onto the fulfillment, and
  *   2. on first AWB, register a Medusa shipment so order.fulfillment_status
@@ -54,7 +54,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
   // Optional shared-secret check. Shipmozo doesn't sign payloads, so this is
   // the only thing standing between the endpoint and the open internet.
-  const expectedSecret = process.env.SHIPMOZO_WEBHOOK_SECRET
+  const expectedSecret = process.env.SHIPMOZO_WEBHOOK_SECRET?.trim()
   if (expectedSecret) {
     const provided =
       (req.headers["x-shipmozo-secret"] as string | undefined) ??
@@ -66,59 +66,68 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   }
 
   const payload = (req.body ?? {}) as ShipmozoWebhookPayload
-  const shipmozoOrderId = (payload.order_id ?? "").trim()
-  if (!shipmozoOrderId) {
-    res.status(400).json({ error: "order_id is required" })
+
+  // The merchant-supplied id we sent on /push-order round-trips back as
+  // `reference_id` (or the typo'd `refrence_id`). We sent `mc_<display_id>`,
+  // so parse the Medusa order's display_id out of that.
+  const referenceId = (
+    payload.reference_id ??
+    payload.refrence_id ??
+    ""
+  ).trim()
+  if (!referenceId) {
+    res.status(400).json({ error: "reference_id is required" })
     return
   }
 
-  // We push orders to Shipmozo with a `mc_<display_id>` order_id so the
-  // webhook payload's order_id round-trips back to a Medusa order. Fall back
-  // to scanning the order's fulfillments if the prefix doesn't match (e.g.
-  // when Shipmozo issued its own id).
-  const displayIdMatch = shipmozoOrderId.match(/^mc_(\d+)/i)
-  const displayId = displayIdMatch ? displayIdMatch[1] : undefined
+  const displayIdMatch = referenceId.match(/^mc_(\d+)/i)
+  if (!displayIdMatch) {
+    logger.warn(
+      `shipmozo-webhook: reference_id=${referenceId} does not match mc_<display_id> — ignoring.`
+    )
+    res.status(202).json({ ignored: true, reason: "non-medusa-reference" })
+    return
+  }
+  const displayId = displayIdMatch[1]
 
   let order: OrderRow | undefined
-  if (displayId) {
-    try {
-      const { data } = await query.graph({
-        entity: "order",
-        filters: { display_id: displayId },
-        fields: [
-          "id",
-          "display_id",
-          "status",
-          "items.id",
-          "items.quantity",
-          "fulfillments.id",
-          "fulfillments.provider_id",
-          "fulfillments.data",
-          "fulfillments.shipped_at",
-          "fulfillments.delivered_at",
-          "fulfillments.canceled_at",
-        ],
-        pagination: { take: 1 },
-      })
-      order = data?.[0] as OrderRow | undefined
-    } catch (e) {
-      logger.warn(
-        `shipmozo-webhook: order lookup failed for display_id=${displayId} — ${
-          (e as Error).message
-        }`
-      )
-    }
+  try {
+    const { data } = await query.graph({
+      entity: "order",
+      filters: { display_id: displayId },
+      fields: [
+        "id",
+        "display_id",
+        "status",
+        "items.id",
+        "items.quantity",
+        "fulfillments.id",
+        "fulfillments.provider_id",
+        "fulfillments.data",
+        "fulfillments.shipped_at",
+        "fulfillments.delivered_at",
+        "fulfillments.canceled_at",
+      ],
+      pagination: { take: 1 },
+    })
+    order = data?.[0] as OrderRow | undefined
+  } catch (e) {
+    logger.warn(
+      `shipmozo-webhook: order lookup failed for display_id=${displayId} — ${
+        (e as Error).message
+      }`
+    )
   }
 
   if (!order) {
     logger.warn(
-      `shipmozo-webhook: could not match a Medusa order for shipmozo_order_id=${shipmozoOrderId}.`
+      `shipmozo-webhook: could not match a Medusa order for reference_id=${referenceId}.`
     )
     res.status(202).json({ ignored: true, reason: "order-not-found" })
     return
   }
 
-  const referenceId = payload.reference_id ?? payload.refrence_id
+  const shipmozoOrderId = (payload.order_id ?? "").trim()
 
   const matchFulfillment = (f: OrderFulfillmentRow): boolean => {
     const provId = (f.provider_id ?? "").toLowerCase()
@@ -127,17 +136,26 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       ?.shipmozo
     if (!sm) return false
     return (
-      sm.order_id === shipmozoOrderId ||
-      sm.reference_id === shipmozoOrderId ||
-      (!!referenceId &&
-        (sm.order_id === referenceId || sm.reference_id === referenceId))
+      sm.reference_id === referenceId ||
+      sm.order_id === referenceId ||
+      (!!shipmozoOrderId &&
+        (sm.order_id === shipmozoOrderId || sm.reference_id === shipmozoOrderId))
     )
   }
 
-  const fulfillment = (order.fulfillments ?? []).find(matchFulfillment)
+  // If only one shipmozo fulfillment exists on the order, fall back to it
+  // when the stored reference_id wasn't populated (e.g. orders pushed
+  // before reference_id was tracked).
+  const shipmozoFulfillments = (order.fulfillments ?? []).filter((f) =>
+    (f.provider_id ?? "").toLowerCase().includes(PROVIDER_MARKER)
+  )
+  const fulfillment =
+    shipmozoFulfillments.find(matchFulfillment) ??
+    (shipmozoFulfillments.length === 1 ? shipmozoFulfillments[0] : undefined)
+
   if (!fulfillment?.id) {
     logger.warn(
-      `shipmozo-webhook: order ${order.id} has no Shipmozo fulfillment matching shipmozo_order_id=${shipmozoOrderId}.`
+      `shipmozo-webhook: order ${order.id} has no Shipmozo fulfillment matching reference_id=${referenceId}.`
     )
     res.status(202).json({ ignored: true, reason: "fulfillment-not-found" })
     return
@@ -150,37 +168,17 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const existing =
     ((fulfillment.data as { shipmozo?: ShipmozoFulfillmentData } | null | undefined)
       ?.shipmozo as ShipmozoFulfillmentData | undefined) ?? ({
-      order_id: shipmozoOrderId,
+      order_id: shipmozoOrderId || referenceId,
     } as ShipmozoFulfillmentData)
-
-  const trackingUrl = (() => {
-    const tpl = process.env.SHIPMOZO_TRACKING_URL_TEMPLATE
-    const awb = payload.awb_number ?? existing.awb_number
-    if (tpl && awb) return tpl.replace(/\{awb\}/g, awb)
-    return existing.tracking_url
-  })()
 
   const merged: ShipmozoFulfillmentData = {
     ...existing,
-    order_id: existing.order_id ?? shipmozoOrderId,
-    reference_id: referenceId ?? existing.reference_id,
+    order_id: existing.order_id ?? shipmozoOrderId ?? referenceId,
+    reference_id: existing.reference_id ?? referenceId,
     awb_number: payload.awb_number ?? existing.awb_number,
     courier: payload.carrier ?? existing.courier,
-    delivery_partner_name:
-      payload.delivery_name ??
-      payload.delhivery_name ??
-      existing.delivery_partner_name,
-    delivery_partner_phone:
-      payload.delivery_phone ??
-      payload.delhivery_phone ??
-      existing.delivery_partner_phone,
-    expected_delivery_date:
-      payload.expected_delivery_date ?? existing.expected_delivery_date,
-    shipment_type: payload.shipment_type ?? existing.shipment_type,
     current_status: currentStatus || existing.current_status,
     status_time: payload.status_time ?? existing.status_time,
-    scan_history: payload.status_feed?.scan ?? existing.scan_history,
-    tracking_url: trackingUrl,
   }
 
   try {
@@ -220,7 +218,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
           labels: [
             {
               tracking_number: awb,
-              tracking_url: trackingUrl ?? "",
+              tracking_url: merged.tracking_url ?? "",
               label_url: "",
             },
           ],

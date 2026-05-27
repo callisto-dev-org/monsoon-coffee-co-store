@@ -114,30 +114,13 @@ export default function MonsoonPincodeCheck({
 
   return (
     <div className={className}>
-      <div className="flex items-center justify-between">
-        <p className="font-family-heading text-sm font-bold uppercase tracking-[0.16em] text-ink/70">
-          Delivery to pincode
-        </p>
-        {locked && (
-          <button
-            type="button"
-            onClick={() => {
-              setLocked(false)
-              setPincode("")
-              setResult(null)
-              setError(null)
-              onEstimate?.(null)
-            }}
-            className="font-family-heading text-[10px] font-bold uppercase tracking-[0.18em] text-accent underline underline-offset-4"
-          >
-            Try different
-          </button>
-        )}
-      </div>
+      <p className="font-family-heading text-xs font-bold uppercase tracking-[0.16em] text-ink/70 sm:text-sm">
+        Delivery to pincode
+      </p>
 
       {locked && seed && (
         <p className="mt-1 font-family-base text-xs text-ink/55">
-          {prefillLabel} · {seed}
+          {prefillLabel} · <span className="font-mono tabular-nums">{seed}</span>
         </p>
       )}
 

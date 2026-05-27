@@ -22,40 +22,41 @@ export default function MonsoonProductCard({ product }: ProductCardProps) {
     ""
 
   return (
-    <article className="group flex h-fit w-full flex-col gap-4 font-family-heading transition-transform duration-300 hover:-translate-y-1">
+    <article className="group flex h-full w-full min-w-0 flex-col gap-3 font-family-heading transition-transform duration-300 hover:-translate-y-1 sm:gap-4">
       <LocalizedClientLink
         href={`/products/${product.handle}`}
-        className="flex min-w-0 flex-1 flex-col gap-4 sm:gap-6"
+        className="flex min-w-0 flex-1 flex-col gap-3 sm:gap-5"
       >
-        <HighlightCard className="mx-auto w-3/4 overflow-hidden transition-shadow duration-300 group-hover:shadow-[16px_16px_0px_0px_var(--mc-ink)] sm:w-full">
+        <HighlightCard
+          size="sm"
+          className="overflow-hidden transition-shadow duration-300 group-hover:shadow-[6px_6px_var(--mc-ink)] sm:group-hover:shadow-[10px_10px_var(--mc-ink)] lg:group-hover:shadow-[16px_16px_var(--mc-ink)]"
+        >
           <Image
             src={thumbnail}
             alt={product.title}
             width={400}
             height={500}
-            className="h-full w-full aspect-[275/346] object-cover shadow-[8px_8px_0px_0px_var(--mc-ink)] transition-transform duration-300 group-hover:scale-[1.03]"
+            className="aspect-[275/346] h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         </HighlightCard>
-        <span className="flex min-w-0 flex-1 flex-col justify-between gap-3 py-1 sm:gap-2 sm:py-0">
-          <span className="text-xs font-semibold uppercase tracking-widest text-accent">
+        <span className="flex min-w-0 flex-1 flex-col gap-1.5 py-1 sm:gap-2 sm:py-0">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-accent sm:text-xs sm:tracking-widest">
             {originProcess || "SINGLE ORIGIN"}
           </span>
-          <span className="flex items-start gap-3">
-            <span className="w-full text-lg font-bold text-ink sm:text-2xl md:w-4/6 uppercase">
-              {product.title}
-            </span>
-            <span className="ml-auto whitespace-nowrap text-base font-black sm:text-2xl">
-              {cheapestPrice?.calculated_price ?? ""}
-            </span>
+          <span className="line-clamp-2 min-w-0 min-h-[2.2em] text-sm font-bold uppercase leading-tight text-ink sm:min-h-[2.4em] sm:text-xl lg:text-2xl">
+            {product.title}
           </span>
-          <span className="font-family-base text-sm leading-6 text-ink/50 transition-colors duration-300 group-hover:text-ink/70 sm:text-base">
+          <span className="whitespace-nowrap font-family-heading text-sm font-black tabular-nums text-ink sm:text-lg lg:text-2xl">
+            {cheapestPrice?.calculated_price ?? ""}
+          </span>
+          <span className="hidden font-family-base text-sm leading-6 text-ink/50 transition-colors duration-300 group-hover:text-ink/70 sm:line-clamp-2 sm:min-h-[3rem] sm:text-base">
             {notes}
           </span>
         </span>
       </LocalizedClientLink>
       <LocalizedClientLink
         href={`/products/${product.handle}`}
-        className="flex w-full shrink-0 items-center justify-center bg-ink px-4 py-4 text-center uppercase font-semibold tracking-widest text-white transition-colors hover:bg-accent sm:w-40 md:w-full"
+        className="mt-auto flex w-full shrink-0 items-center justify-center bg-ink px-3 py-3 text-center text-xs font-semibold uppercase tracking-widest text-white transition-colors hover:bg-accent sm:px-4 sm:py-4 sm:text-sm md:text-base"
       >
         View Product
       </LocalizedClientLink>

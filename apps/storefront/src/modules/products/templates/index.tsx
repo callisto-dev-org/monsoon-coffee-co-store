@@ -61,10 +61,31 @@ const ProductTemplate = async ({
     listProductReviews(product.id),
     getProductCoffeeProfile(product.id),
     isBrewLabEnabledForProduct({
-      type_id: (product as { type_id?: string | null }).type_id ?? null,
-      type: (product as { type?: { id?: string; value?: string } }).type ?? null,
+      categories:
+        (product as { categories?: Array<{ id?: string; handle?: string }> })
+          .categories ?? null,
     }),
   ])
+
+  const productCategories =
+    (product as {
+      categories?: Array<{
+        id?: string | null
+        handle?: string | null
+        name?: string | null
+      }>
+    }).categories ?? []
+
+  const isCoffeeBeans = productCategories.some((c) => {
+    const handle = (c?.handle ?? "").toLowerCase()
+    const name = (c?.name ?? "").toLowerCase()
+    return (
+      handle === "coffee-beans" ||
+      handle === "coffee" ||
+      name === "coffee beans" ||
+      name === "coffee"
+    )
+  })
 
   return (
     <main className="flex flex-col items-center justify-center">
@@ -73,9 +94,13 @@ const ProductTemplate = async ({
         region={region}
         isAuthenticated={isAuthenticated}
         cart={cart}
+        coffeeProfile={coffeeProfile}
+        isCoffeeBeans={isCoffeeBeans}
       />
       <MonsoonProductCarousel items={highlightItems} />
-      {coffeeProfile && <MonsoonCoffeeSpec profile={coffeeProfile} />}
+      {coffeeProfile && !isCoffeeBeans && (
+        <MonsoonCoffeeSpec profile={coffeeProfile} />
+      )}
       {brewLabEnabled && <MonsoonBrewLab brews={brews} />}
       <div id="reviews" className="w-full">
         <MonsoonReviews

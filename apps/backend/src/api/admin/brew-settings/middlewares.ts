@@ -5,7 +5,7 @@ import {
 import { z } from "zod"
 
 export const UpdateBrewSettingsSchema = z.object({
-  enabled_product_type_ids: z.array(z.string().min(1)).nullable().optional(),
+  enabled_product_category_ids: z.array(z.string().min(1)).nullable().optional(),
 })
 export type UpdateBrewSettingsSchema = z.infer<typeof UpdateBrewSettingsSchema>
 

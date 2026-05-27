@@ -128,6 +128,15 @@ export async function saveCheckoutAddress(
       })
     }
 
+    // Best-effort auto-select shipping so the next step doesn't have to
+    // surface a "no delivery option attached" warning. Silently skip if
+    // no options come back — the place-order action also retries this.
+    try {
+      await ensureShippingSelected()
+    } catch {
+      // noop
+    }
+
     return { errors: {}, message: null, values }
   } catch (e) {
     return {

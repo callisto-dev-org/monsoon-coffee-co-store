@@ -11,6 +11,7 @@ type PaginatedProductsParams = {
   collection_id?: string[]
   category_id?: string[]
   id?: string[]
+  tag_id?: string[]
   order?: string
 }
 
@@ -20,6 +21,7 @@ export default async function PaginatedProducts({
   collectionId,
   categoryId,
   productsIds,
+  tagIds,
   countryCode,
 }: {
   sortBy?: SortOptions
@@ -27,6 +29,7 @@ export default async function PaginatedProducts({
   collectionId?: string
   categoryId?: string
   productsIds?: string[]
+  tagIds?: string[]
   countryCode: string
 }) {
   const queryParams: PaginatedProductsParams = {
@@ -43,6 +46,10 @@ export default async function PaginatedProducts({
 
   if (productsIds) {
     queryParams["id"] = productsIds
+  }
+
+  if (tagIds && tagIds.length > 0) {
+    queryParams["tag_id"] = tagIds
   }
 
   if (sortBy === "created_at") {
@@ -88,7 +95,7 @@ export default async function PaginatedProducts({
       </span>
       <div className="flex py-2 sm:py-4 lg:py-6">
         <div
-          className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 lg:gap-8"
+          className="grid w-full grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 lg:gap-8 2xl:grid-cols-4"
           data-testid="products-list"
         >
           {products.map((p) => (

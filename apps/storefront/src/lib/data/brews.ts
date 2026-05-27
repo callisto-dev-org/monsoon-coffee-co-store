@@ -47,36 +47,37 @@ export async function listProductBrews(productId: string): Promise<BrewRecipe[]>
   }
 }
 
-const FALLBACK_PRODUCT_TYPE_VALUE = "coffee"
+const FALLBACK_CATEGORY_HANDLE = "coffee"
 
 /**
  * Whether the brew lab section should render for a product. Pulls the list
- * of enabled product type IDs from /store/brew-settings; falls back to a
- * product type with value "coffee" when no setting has been saved yet.
+ * of enabled product category IDs from /store/brew-settings; falls back to
+ * a category with handle "coffee" when no setting has been saved yet.
  */
 export async function isBrewLabEnabledForProduct(product: {
-  type_id?: string | null
-  type?: { id?: string | null; value?: string | null } | null
+  categories?: Array<{ id?: string | null; handle?: string | null }> | null
 }): Promise<boolean> {
-  const typeId = product.type_id ?? product.type?.id ?? null
-  const typeValue = product.type?.value ?? null
+  const categories = (product.categories ?? []).filter(
+    (c): c is { id?: string | null; handle?: string | null } => !!c
+  )
 
   let enabledIds: string[] = []
   try {
-    const res = await sdk.client.fetch<{ enabled_product_type_ids: string[] }>(
-      "/store/brew-settings",
-      { method: "GET", cache: "no-store" }
-    )
-    enabledIds = res?.enabled_product_type_ids ?? []
+    const res = await sdk.client.fetch<{
+      enabled_product_category_ids: string[]
+    }>("/store/brew-settings", { method: "GET", cache: "no-store" })
+    enabledIds = res?.enabled_product_category_ids ?? []
   } catch {
     enabledIds = []
   }
 
   if (enabledIds.length > 0) {
-    return !!typeId && enabledIds.includes(typeId)
+    const enabled = new Set(enabledIds)
+    return categories.some((c) => !!c.id && enabled.has(c.id))
   }
-  return (
-    typeof typeValue === "string" &&
-    typeValue.toLowerCase() === FALLBACK_PRODUCT_TYPE_VALUE
+  return categories.some(
+    (c) =>
+      typeof c.handle === "string" &&
+      c.handle.toLowerCase() === FALLBACK_CATEGORY_HANDLE
   )
 }

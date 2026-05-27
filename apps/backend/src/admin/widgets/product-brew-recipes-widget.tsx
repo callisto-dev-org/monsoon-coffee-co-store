@@ -38,7 +38,7 @@ type BrewRecipe = {
 
 // Fallback used when /admin/brew-settings hasn't been configured yet so
 // existing coffee products keep showing the widget out of the box.
-const FALLBACK_PRODUCT_TYPE_VALUE = "coffee"
+const FALLBACK_CATEGORY_HANDLE = "coffee"
 
 async function adminFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -62,11 +62,11 @@ const ProductBrewRecipesWidget = ({
   useEffect(() => {
     let cancelled = false
     adminFetch<{
-      brew_settings: { enabled_product_type_ids: string[] | null }
+      brew_settings: { enabled_product_category_ids: string[] | null }
     }>("/admin/brew-settings")
       .then((r) => {
         if (cancelled) return
-        setEnabledIds(r.brew_settings?.enabled_product_type_ids ?? [])
+        setEnabledIds(r.brew_settings?.enabled_product_category_ids ?? [])
       })
       .catch(() => {
         if (cancelled) return
@@ -79,18 +79,17 @@ const ProductBrewRecipesWidget = ({
   }, [])
 
   const isLinked = useMemo(() => {
-    const typeId =
-      (product as { type_id?: string | null }).type_id ??
-      (product as { type?: { id?: string } }).type?.id
-    const typeValue = (product as { type?: { value?: string } }).type?.value
+    const categories =
+      ((product as { categories?: Array<{ id: string; handle?: string }> })
+        .categories ?? []) as Array<{ id: string; handle?: string }>
     if (enabledIds && enabledIds.length > 0) {
-      return !!typeId && enabledIds.includes(typeId)
+      const enabled = new Set(enabledIds)
+      return categories.some((c) => enabled.has(c.id))
     }
-    // No setting configured → fall back to a product type with value
-    // "coffee" so an unconfigured install still works out of the box.
-    return (
-      typeof typeValue === "string" &&
-      typeValue.toLowerCase() === FALLBACK_PRODUCT_TYPE_VALUE
+    // No setting configured → fall back to a category with handle "coffee"
+    // so an unconfigured install still works out of the box.
+    return categories.some(
+      (c) => typeof c.handle === "string" && c.handle.toLowerCase() === FALLBACK_CATEGORY_HANDLE
     )
   }, [product, enabledIds])
 

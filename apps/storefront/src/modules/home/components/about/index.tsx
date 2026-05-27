@@ -5,14 +5,14 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 export default function AboutSection() {
   return (
     <section className="w-full font-family-heading flex flex-col gap-px lg:grid lg:h-[200vh] lg:grid-cols-6 lg:grid-rows-4">
-      <div className="flex flex-col gap-6 bg-ink px-6 py-12 sm:px-8 sm:py-14 lg:col-span-2 lg:row-span-2 lg:justify-center lg:gap-8 lg:px-12 lg:py-20">
-        <span className="text-sm font-family-heading font-semibold tracking-widest text-accent sm:text-base lg:text-lg">
+      <div className="flex flex-col gap-5 bg-ink px-5 py-10 sm:gap-6 sm:px-8 sm:py-14 lg:col-span-2 lg:row-span-2 lg:justify-center lg:gap-8 lg:px-12 lg:py-20">
+        <span className="font-family-heading text-xs font-semibold uppercase tracking-[0.18em] text-accent sm:text-base lg:text-lg">
           ORIGIN & PHILOSOPHY
         </span>
-        <span className="text-5xl font-extrabold text-surface sm:text-6xl lg:text-8xl">
+        <span className="font-family-heading text-[clamp(2.5rem,12vw,4rem)] font-extrabold leading-[0.9] text-surface sm:text-6xl lg:text-8xl">
           SOURCED <br /> BY <br /> STORM.
         </span>
-        <div className="py-2 text-lg font-light font-family-base text-surface/80 sm:py-4 sm:text-xl lg:text-2xl">
+        <div className="py-1 font-family-base text-base font-light text-surface/80 sm:py-4 sm:text-xl lg:text-2xl">
           We don&apos;t just buy beans. We hunt for the erratic, the bold, and
           the uncompromising. Our sourcing philosophy is built on direct
           relationships with farmers who embrace the chaos of the monsoon
@@ -42,31 +42,31 @@ export default function AboutSection() {
             className="object-cover"
           />
         </div>
-        <div className="flex w-full flex-col bg-accent p-8 sm:p-10 lg:p-20">
+        <div className="flex w-full flex-col bg-accent p-6 sm:p-10 lg:p-20">
           <span className="mt-auto flex flex-col lg:ml-auto">
-            <span className="text-3xl font-semibold uppercase text-surface sm:text-4xl lg:text-5xl">
+            <span className="font-family-heading text-[clamp(1.875rem,8vw,2.25rem)] font-semibold uppercase leading-[0.95] text-surface sm:text-4xl lg:text-5xl">
               The Heat <br /> Curve
             </span>
-            <span className="mt-4 w-full text-base font-light text-surface/80 sm:text-lg lg:w-4/5">
+            <span className="mt-3 w-full text-base font-light text-surface/80 sm:mt-4 sm:text-lg lg:w-4/5">
               Every roast is choreographed: development time, drum speed,
               airflow. Variables become rituals; rituals become flavor.
             </span>
           </span>
         </div>
       </div>
-      <div className="bg-ink p-4 sm:p-6 lg:col-span-4 lg:row-span-1 lg:flex lg:items-center lg:justify-center">
+      <div className="bg-ink p-3 sm:p-6 lg:col-span-4 lg:row-span-1 lg:flex lg:items-center lg:justify-center">
         <div className="flex w-full flex-col bg-surface lg:h-3/4 lg:flex-row">
-          <span className="flex w-full flex-col gap-4 px-6 py-8 sm:px-8 sm:py-10 lg:w-1/2 lg:px-20 lg:py-20">
-            <span className="text-3xl font-semibold uppercase text-ink sm:text-4xl lg:text-5xl">
+          <span className="flex w-full flex-col gap-3 px-5 py-8 sm:gap-4 sm:px-8 sm:py-10 lg:w-1/2 lg:px-20 lg:py-20">
+            <span className="font-family-heading text-3xl font-semibold uppercase text-ink sm:text-4xl lg:text-5xl">
               The Lab
             </span>
-            <span className="mt-2 w-full text-base font-light text-ink/80 sm:mt-4 sm:text-lg">
+            <span className="w-full text-base font-light text-ink/80 sm:mt-2 sm:text-lg">
               Our lab is a sanctuary of precision and obsession. Here, we
               dissect every variable of the roasting process to unlock the full
               potential of each bean. Science meets art.
             </span>
           </span>
-          <div className="relative h-64 w-full sm:h-80 lg:h-full lg:w-1/2">
+          <div className="relative h-56 w-full sm:h-80 lg:h-full lg:w-1/2">
             <Image
               src="/monsoon/images/about2.png"
               alt="About 2"
@@ -76,32 +76,32 @@ export default function AboutSection() {
           </div>
         </div>
       </div>
-      <div className="relative h-72 sm:h-[26rem] lg:col-span-3 lg:row-span-2 lg:h-auto">
+      <div className="relative h-64 sm:h-[26rem] lg:col-span-3 lg:row-span-2 lg:h-auto">
         <Image
           src="/monsoon/images/about3.png"
           alt="About 3"
           fill
           className="object-cover"
         />
-        <span className="absolute bottom-4 left-4 bg-accent p-4 text-4xl font-bold font-family-heading uppercase text-surface sm:bottom-6 sm:left-6 sm:p-6 sm:text-6xl lg:bottom-8 lg:left-8 lg:p-8 lg:text-7xl">
+        <span className="absolute bottom-3 left-3 bg-accent p-3 font-family-heading text-3xl font-bold uppercase text-surface sm:bottom-6 sm:left-6 sm:p-6 sm:text-6xl lg:bottom-8 lg:left-8 lg:p-8 lg:text-7xl">
           CRAFT.
         </span>
       </div>
-      <div className="flex flex-col justify-center gap-8 px-6 py-12 sm:px-8 sm:py-14 lg:col-span-3 lg:row-span-2 lg:gap-16 lg:p-24 xl:p-40">
-        <span className="text-base font-semibold uppercase tracking-widest text-accent sm:text-lg lg:text-xl">
+      <div className="flex flex-col justify-center gap-6 px-5 py-10 sm:gap-8 sm:px-8 sm:py-14 lg:col-span-3 lg:row-span-2 lg:gap-16 lg:p-24 xl:p-40">
+        <span className="font-family-heading text-sm font-semibold uppercase tracking-[0.18em] text-accent sm:text-lg lg:text-xl">
           Behind the machine
         </span>
-        <span className="text-4xl font-bold uppercase text-ink sm:text-5xl lg:text-7xl">
+        <span className="font-family-heading text-[clamp(2rem,9vw,2.5rem)] font-bold uppercase leading-[0.95] text-ink sm:text-5xl lg:text-7xl">
           THE PRECISION <br /> OF HEAT.
         </span>
-        <span className="text-base font-light text-[var(--mc-secondary)] sm:text-lg lg:text-xl">
+        <span className="font-family-base text-base font-light text-[var(--mc-secondary)] sm:text-lg lg:text-xl">
           Every batch is treated as a unique chemical, architectural project.
           We don&apos;t follow factory presets; we listen to the bean,
           monitoring moisture loss and first crack with religious intensity.
         </span>
         <LocalizedClientLink
           href="/store"
-          className="group relative flex w-fit cursor-pointer items-center gap-2 text-lg font-semibold uppercase text-ink sm:text-xl lg:text-2xl"
+          className="group relative flex w-fit cursor-pointer items-center gap-2 font-family-heading text-base font-semibold uppercase text-ink sm:text-xl lg:text-2xl"
         >
           <span className="before:border-b-4 py-1 before:border-accent before:absolute before:w-full before:h-full before:scale-x-0 before:origin-left before:transition-all group-hover:before:scale-x-100 relative">
             EXPLORE OUR ROASTERY

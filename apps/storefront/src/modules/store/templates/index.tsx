@@ -3,20 +3,25 @@ import { Suspense } from "react"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import MonsoonFilter from "@modules/store/components/monsoon-filter"
+import { listFilterCategories } from "@lib/data/filter-categories"
 
 import PaginatedProducts from "./paginated-products"
 
-const StoreTemplate = ({
+const StoreTemplate = async ({
   sortBy,
   page,
+  tagIds,
   countryCode,
 }: {
   sortBy?: SortOptions
   page?: string
+  tagIds?: string[]
   countryCode: string
 }) => {
   const pageNumber = page ? parseInt(page) : 1
   const sort = sortBy || "created_at"
+
+  const filterCategories = await listFilterCategories()
 
   return (
     <div
@@ -39,12 +44,16 @@ const StoreTemplate = ({
         </span>
       </div>
       <div className="flex flex-col gap-8 px-4 py-8 sm:px-8 sm:py-10 lg:flex-row lg:gap-12 lg:px-12 lg:py-20">
-        <MonsoonFilter className="w-full uppercase lg:w-1/5 lg:p-8" />
+        <MonsoonFilter
+          categories={filterCategories}
+          className="w-full uppercase lg:w-1/5 lg:p-8"
+        />
         <div className="flex h-fit w-full flex-col gap-4 py-2 lg:py-8 lg:pr-12">
           <Suspense fallback={<SkeletonProductGrid />}>
             <PaginatedProducts
               sortBy={sort}
               page={pageNumber}
+              tagIds={tagIds}
               countryCode={countryCode}
             />
           </Suspense>

@@ -6,16 +6,10 @@ type OrderSummaryProps = {
 }
 
 const OrderSummary = ({ order }: OrderSummaryProps) => {
-  const getAmount = (amount?: number | null) => {
-    if (!amount) {
-      return
-    }
-
-    return convertToLocale({
-      amount,
-      currency_code: order.currency_code,
-    })
-  }
+  const fmt = (amount?: number | null) =>
+    amount
+      ? convertToLocale({ amount, currency_code: order.currency_code })
+      : undefined
 
   const Row = ({
     label,
@@ -26,43 +20,70 @@ const OrderSummary = ({ order }: OrderSummaryProps) => {
     value?: string
     accent?: boolean
   }) => (
-    <div className="flex items-center justify-between font-family-base text-base text-ink/75">
-      <span>{label}</span>
-      <span className={accent ? "text-accent" : ""}>{value}</span>
+    <div className="flex items-baseline justify-between gap-3 font-family-base text-[13px] text-ink/70">
+      <span className="flex items-baseline gap-2">
+        <span className="uppercase tracking-[0.06em] text-ink/60">{label}</span>
+        <span
+          aria-hidden
+          className="flex-1 translate-y-[-2px] border-b border-dotted border-ink/25"
+        />
+      </span>
+      <span
+        className={`font-mono tabular-nums ${
+          accent ? "text-accent" : "text-ink"
+        }`}
+      >
+        {value}
+      </span>
     </div>
   )
 
   return (
     <div>
-      <h2 className="mb-6 font-family-heading text-2xl sm:text-3xl font-black uppercase text-ink">
+      <div className="flex items-baseline justify-between">
+        <h3 className="font-family-heading text-xs font-bold uppercase tracking-[0.2em] text-accent">
+          Receipt
+        </h3>
+        <span className="font-mono text-[11px] tabular-nums text-ink/45">
+          #{order.display_id}
+        </span>
+      </div>
+      <p className="mt-1 font-family-heading text-xl font-black uppercase text-ink sm:text-2xl">
         Order Summary
-      </h2>
-      <div className="flex flex-col gap-2">
-        <Row label="Subtotal" value={getAmount(order.subtotal)} />
+      </p>
+
+      <div className="mt-5 flex flex-col gap-2.5">
+        <Row label="Subtotal" value={fmt(order.subtotal)} />
         {order.discount_total > 0 && (
           <Row
             label="Discount"
-            value={`- ${getAmount(order.discount_total)}`}
+            value={`- ${fmt(order.discount_total)}`}
             accent
           />
         )}
         {order.gift_card_total > 0 && (
           <Row
             label="Gift card"
-            value={`- ${getAmount(order.gift_card_total)}`}
+            value={`- ${fmt(order.gift_card_total)}`}
             accent
           />
         )}
-        <Row label="Shipping" value={getAmount(order.shipping_total)} />
-        <Row label="Taxes" value={getAmount(order.tax_total)} />
+        <Row label="Shipping" value={fmt(order.shipping_total)} />
+        <Row label="Taxes" value={fmt(order.tax_total)} />
       </div>
-      <div className="my-5 border-t-2 border-dashed border-ink/20" />
-      <div className="flex items-center justify-between">
-        <span className="font-family-heading text-base font-bold uppercase tracking-[0.06em] text-ink sm:text-lg">
-          Total
+
+      {/* Perforated divider */}
+      <div className="relative my-5 h-[2px] bg-ink">
+        <span className="absolute left-[-1rem] top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-surface" />
+        <span className="absolute right-[-1rem] top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-surface" />
+      </div>
+
+      <div className="flex items-end justify-between">
+        <span className="font-family-heading text-[11px] font-bold uppercase tracking-[0.2em] text-ink/55">
+          Total Paid
         </span>
-        <span className="font-family-heading text-2xl font-black text-ink sm:text-3xl">
-          {getAmount(order.total)}
+        <span className="font-family-heading text-3xl font-black tabular-nums text-ink sm:text-4xl">
+          {fmt(order.total)}
         </span>
       </div>
     </div>

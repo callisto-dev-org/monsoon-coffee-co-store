@@ -1,17 +1,67 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useMemo, useState, useTransition } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+
 import { CheckIcon } from "@modules/common/icons/monsoon/check"
+import type {
+  StoreFilterCategory,
+  StoreFilterTag,
+} from "@lib/data/filter-categories"
 
 type FilterProps = {
+  categories: StoreFilterCategory[]
   className?: string
 }
 
-export default function MonsoonFilter({ className = "" }: FilterProps) {
+export default function MonsoonFilter({
+  categories,
+  className = "",
+}: FilterProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [isOpen, setIsOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  // Selected tag IDs come from the URL — single source of truth.
+  const selectedTagIds = useMemo(() => {
+    const raw = searchParams.getAll("tag_id")
+    return new Set(raw.filter(Boolean))
+  }, [searchParams])
+
+  const setSelectedTagIds = useCallback(
+    (next: Set<string>) => {
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete("tag_id")
+      Array.from(next).forEach((id) => params.append("tag_id", id))
+      // Reset pagination when filters change.
+      params.delete("page")
+      const qs = params.toString()
+      startTransition(() => {
+        router.replace(qs ? `?${qs}` : "?", { scroll: false })
+      })
+    },
+    [router, searchParams]
+  )
+
+  const toggleTag = (tagId: string, checked: boolean) => {
+    const next = new Set(selectedTagIds)
+    if (checked) next.add(tagId)
+    else next.delete(tagId)
+    setSelectedTagIds(next)
+  }
+
+  const clearAll = () => setSelectedTagIds(new Set())
+
+  const selectedCount = selectedTagIds.size
+
+  if (!categories.length) {
+    // Nothing to filter by — render nothing so we don't show an empty rail.
+    return null
+  }
 
   return (
-    <div className={className}>
+    <div className={className} aria-busy={isPending || undefined}>
       <button
         type="button"
         className="flex w-full items-center justify-between border-ink py-4 text-left uppercase lg:hidden"
@@ -19,8 +69,13 @@ export default function MonsoonFilter({ className = "" }: FilterProps) {
         aria-expanded={isOpen}
         aria-controls="products-filters"
       >
-        <span className="text-lg font-bold tracking-tight text-ink">
+        <span className="flex items-baseline gap-2 text-lg font-bold tracking-tight text-ink">
           Filters
+          {selectedCount > 0 && (
+            <span className="border-2 border-accent bg-[rgb(var(--mc-primary-rgb)/0.2)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-accent">
+              {selectedCount}
+            </span>
+          )}
         </span>
         <span className="relative h-5 w-6" aria-hidden="true">
           <span
@@ -45,54 +100,87 @@ export default function MonsoonFilter({ className = "" }: FilterProps) {
         id="products-filters"
         className={`overflow-hidden transition-all duration-300 ease-out lg:overflow-visible ${
           isOpen
-            ? "max-h-[40rem] opacity-100"
+            ? "max-h-[60rem] opacity-100"
             : "max-h-0 opacity-0 lg:max-h-none lg:opacity-100"
         }`}
       >
         <div className="pt-4 lg:pt-0">
-          <FilterCategory
-            name="Roast Level"
-            options={["Light Roast", "Medium Roast", "Dark Roast"]}
-          />
-          <FilterCategory
-            name="Origin"
-            options={["Africa", "Asia", "Asia Pacific"]}
-          />
-          <FilterCategory
-            name="Process"
-            options={["Washed", "Natural", "Honey", "Aerobic"]}
-          />
+          {selectedCount > 0 && (
+            <div className="mb-4 flex items-center justify-between border-b-2 border-dashed border-ink/15 pb-3">
+              <span className="font-family-heading text-[10px] font-bold uppercase tracking-[0.18em] text-ink/60">
+                <span className="tabular-nums">{selectedCount}</span> selected
+              </span>
+              <button
+                type="button"
+                onClick={clearAll}
+                className="font-family-heading text-[10px] font-bold uppercase tracking-[0.18em] text-accent underline underline-offset-4 hover:text-ink"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+
+          {categories.map((category) => (
+            <FilterCategorySection
+              key={category.id}
+              category={category}
+              selectedTagIds={selectedTagIds}
+              onToggle={toggleTag}
+            />
+          ))}
         </div>
       </div>
     </div>
   )
 }
 
-function FilterCategory({
-  name,
-  options,
+function FilterCategorySection({
+  category,
+  selectedTagIds,
+  onToggle,
 }: {
-  name: string
-  options: string[]
+  category: StoreFilterCategory
+  selectedTagIds: Set<string>
+  onToggle: (tagId: string, checked: boolean) => void
 }) {
+  if (!category.tags.length) return null
+
   return (
-    <span className="flex flex-col font-family-heading text-ink gap-4">
-      <span className="py-2 border-b-2 border-ink text-2xl font-bold tracking-tight my-4">
-        {name}
+    <span className="flex flex-col gap-3 font-family-heading text-ink">
+      <span className="my-4 border-b-2 border-ink py-2 text-2xl font-bold tracking-tight">
+        {category.name}
       </span>
-      {options.map((option) => (
-        <label
-          key={option}
-          className="flex items-center gap-2 relative text-sm font-light cursor-pointer"
-        >
-          <input
-            type="checkbox"
-            className="w-5 h-5 accent-accent rounded-none appearance-none border-2 peer focus:outline-none cursor-pointer border-ink checked:border-transparent checked:bg-accent"
-          />
-          {option}
-          <CheckIcon className="absolute h-5 w-5 text-surface opacity-0 peer-checked:opacity-100 pointer-events-none" />
-        </label>
+      {category.tags.map((tag) => (
+        <FilterCheckbox
+          key={tag.id}
+          tag={tag}
+          checked={selectedTagIds.has(tag.id)}
+          onChange={(c) => onToggle(tag.id, c)}
+        />
       ))}
     </span>
+  )
+}
+
+function FilterCheckbox({
+  tag,
+  checked,
+  onChange,
+}: {
+  tag: StoreFilterTag
+  checked: boolean
+  onChange: (checked: boolean) => void
+}) {
+  return (
+    <label className="relative flex cursor-pointer items-center gap-2 text-sm font-light">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="peer h-5 w-5 cursor-pointer appearance-none rounded-none border-2 border-ink accent-accent focus:outline-none checked:border-transparent checked:bg-accent"
+      />
+      <span className="capitalize">{tag.value}</span>
+      <CheckIcon className="pointer-events-none absolute h-5 w-5 text-surface opacity-0 peer-checked:opacity-100" />
+    </label>
   )
 }

@@ -11,12 +11,12 @@ import type { UpdateBrewSettingsSchema } from "./middlewares"
 
 type BrewSettingsRow = {
   id: string
-  enabled_product_type_ids: string[] | null
+  enabled_product_category_ids: string[] | null
 }
 
 const empty = (): BrewSettingsRow => ({
   id: "",
-  enabled_product_type_ids: [],
+  enabled_product_category_ids: [],
 })
 
 export async function GET(
@@ -27,15 +27,13 @@ export async function GET(
   try {
     const { data } = await query.graph({
       entity: "brew_settings",
-      fields: ["id", "enabled_product_type_ids"],
+      fields: ["id", "enabled_product_category_ids"],
       pagination: { take: 1 },
     })
     const settings: BrewSettingsRow =
       (data?.[0] as BrewSettingsRow | undefined) ?? empty()
     res.json({ brew_settings: settings })
   } catch {
-    // Table not yet created (migration not run). Return defaults so the
-    // admin UI can still load — saving will fail until migration runs.
     res.json({ brew_settings: empty() })
   }
 }
@@ -47,7 +45,8 @@ export async function POST(
   try {
     const { result } = await updateBrewSettingsWorkflow(req.scope).run({
       input: {
-        enabled_product_type_ids: req.validatedBody.enabled_product_type_ids ?? [],
+        enabled_product_category_ids:
+          req.validatedBody.enabled_product_category_ids ?? [],
       },
     })
     res.json({ brew_settings: result })

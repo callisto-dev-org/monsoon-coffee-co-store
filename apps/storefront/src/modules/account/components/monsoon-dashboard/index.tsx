@@ -3,7 +3,6 @@ import { convertToLocale } from "@lib/util/money"
 import { CTAButton } from "@modules/common/components/monsoon/buttons"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import AddAddress from "@modules/account/components/address-card/add-address"
-import OrderHistoryRow from "@modules/account/components/order-history-row"
 
 type DashboardProps = {
   customer: HttpTypes.StoreCustomer
@@ -25,20 +24,20 @@ function MemberHero({ customer }: { customer: HttpTypes.StoreCustomer }) {
 
   return (
     <section className="border-b-2 border-ink pb-8 sm:pb-10 lg:pb-12">
-      <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex flex-col gap-6 sm:gap-10 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="font-family-heading text-sm font-bold uppercase tracking-[0.12em] text-accent sm:text-base">
+          <p className="font-family-heading text-xs font-bold uppercase tracking-[0.22em] text-accent sm:text-sm lg:text-base">
             Member Account
           </p>
-          <h1 className="mt-4 font-family-heading text-[clamp(3rem,7vw,7rem)] font-black uppercase leading-[0.9] text-ink">
+          <h1 className="mt-3 font-family-heading text-[clamp(2.5rem,9vw,7rem)] font-black uppercase leading-[0.88] tracking-[-0.02em] text-ink sm:mt-4">
             THE ROASTER&apos;S <br /> LEDGER
           </h1>
         </div>
-        <div className="text-left font-family-heading lg:text-right">
-          <p className="text-xl sm:text-2xl font-bold uppercase leading-[1.05] text-[var(--mc-secondary)]">
+        <div className="font-family-heading lg:text-right">
+          <p className="break-words text-base font-bold uppercase leading-[1.1] text-[var(--mc-secondary)] sm:text-xl lg:text-2xl">
             CURATED FOR: {fullName.toUpperCase()}
           </p>
-          <p className="mt-2 text-sm font-medium uppercase tracking-[0.06em] text-ink/35 sm:text-base">
+          <p className="mt-2 font-mono text-[11px] uppercase tabular-nums tracking-[0.08em] text-ink/45 sm:text-xs">
             MEMBER SINCE {memberSince.toUpperCase()}
           </p>
         </div>
@@ -66,32 +65,32 @@ function ProfilePanel({
     "inline-flex items-center justify-center border-2 border-ink px-5 py-3 font-family-heading text-sm font-bold uppercase tracking-[0.08em] transition-all"
 
   return (
-    <section className="border-2 border-ink p-6 pt-10">
-      <span className="inline-flex -translate-y-16 border-2 border-ink bg-accent px-4 py-2 font-family-heading text-sm font-bold uppercase tracking-[0.08em] text-surface">
+    <section className="relative border-2 border-ink p-5 pt-8 sm:p-6 sm:pt-10">
+      <span className="absolute left-5 top-0 -translate-y-1/2 border-2 border-ink bg-accent px-3 py-1.5 font-family-heading text-xs font-bold uppercase tracking-[0.12em] text-surface sm:left-6 sm:px-4 sm:py-2 sm:text-sm">
         Profile
       </span>
-      <div className="-mt-8 grid gap-6 xl:grid-cols-2">
-        <article className="border-2 border-ink bg-surface p-6 shadow-[4px_4px_0px_0px_var(--mc-ink)]">
-          <h3 className="font-family-heading text-2xl font-bold uppercase leading-tight text-ink">
+      <div className="grid gap-5 sm:gap-6 xl:grid-cols-2">
+        <article className="border-2 border-ink bg-surface p-5 shadow-[3px_3px_0px_0px_var(--mc-ink)] sm:p-6 sm:shadow-[4px_4px_0px_0px_var(--mc-ink)]">
+          <h3 className="font-family-heading text-xl font-bold uppercase leading-tight text-ink sm:text-2xl">
             Account Email
           </h3>
-          <p className="mt-3 font-family-base text-base text-ink/65 break-words">
+          <p className="mt-3 break-words font-family-base text-sm text-ink/65 sm:text-base">
             {customer.email}
           </p>
-          <p className="mt-6 font-family-heading text-sm font-bold uppercase tracking-widest text-ink/45">
+          <p className="mt-5 font-family-heading text-xs font-bold uppercase tracking-[0.18em] text-ink/45 sm:mt-6 sm:text-sm sm:tracking-widest">
             Phone
           </p>
-          <p className="font-family-base text-base text-ink/75">
+          <p className="font-family-base text-sm text-ink/75 sm:text-base">
             {customer.phone || "—"}
           </p>
         </article>
-        <article className="flex flex-col border-2 border-ink bg-surface p-6 shadow-[4px_4px_0px_0px_var(--mc-ink)]">
-          <div className="flex items-baseline justify-between gap-3">
-            <h3 className="font-family-heading text-2xl font-bold uppercase leading-tight text-ink">
+        <article className="flex flex-col border-2 border-ink bg-surface p-5 shadow-[3px_3px_0px_0px_var(--mc-ink)] sm:p-6 sm:shadow-[4px_4px_0px_0px_var(--mc-ink)]">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
+            <h3 className="font-family-heading text-xl font-bold uppercase leading-tight text-ink sm:text-2xl">
               Default Shipping
             </h3>
             {addressCount > 0 && (
-              <span className="font-family-heading text-xs font-bold uppercase tracking-[0.12em] text-ink/45">
+              <span className="font-family-heading text-[10px] font-bold uppercase tracking-[0.14em] text-ink/45 sm:text-xs sm:tracking-[0.12em]">
                 {addressCount}{" "}
                 {addressCount === 1 ? "address" : "addresses"} saved
               </span>
@@ -194,76 +193,170 @@ function ProfilePanel({
   )
 }
 
-function OrderHistoryTable({
-  orders,
-  currencyCode,
+const titleCaseStatus = (s: string) =>
+  s
+    .split(/[_\s]+/)
+    .filter(Boolean)
+    .map((p) => p.slice(0, 1).toUpperCase() + p.slice(1).toLowerCase())
+    .join(" ")
+
+const statusTone = (status: string) => {
+  const s = status.toLowerCase()
+  if (s.includes("deliver"))
+    return "border-emerald-700 bg-emerald-50 text-emerald-800"
+  if (s.includes("cancel")) return "border-red-700 bg-red-50 text-red-700"
+  if (s.includes("ship") || s.includes("transit") || s.includes("pickup"))
+    return "border-accent bg-[rgb(var(--mc-primary-rgb)/0.18)] text-accent"
+  return "border-ink/40 bg-ink/5 text-ink/70"
+}
+
+function LatestBulletinRow({
+  order,
 }: {
-  orders: HttpTypes.StoreOrder[] | null
-  currencyCode: string
+  order: HttpTypes.StoreOrder
 }) {
+  const placedAt = new Date(order.created_at as string | Date)
+  const displayStatus = titleCaseStatus(
+    (order.fulfillment_status ?? order.status ?? "pending") as string
+  )
+  const itemCount =
+    order.items?.reduce((acc, i) => acc + (i.quantity ?? 0), 0) ?? 0
+
   return (
-    <section className="mt-14">
-      <div className="flex items-end justify-between gap-4">
-        <h2 className="font-family-heading text-4xl sm:text-5xl lg:text-6xl font-black uppercase text-ink">
-          Order History
-        </h2>
-        <p className="font-family-heading text-sm font-medium uppercase tracking-[0.08em] text-ink/35 sm:text-base">
-          Latest Orders
-        </p>
+    <LocalizedClientLink
+      href={`/account/orders/details/${order.id}`}
+      className="group flex flex-col gap-3 border-b-2 border-dashed border-ink/15 py-5 transition-colors first:pt-2 last:border-b-0 hover:bg-ink/[0.02] sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-2"
+      data-testid="latest-bulletin-row"
+    >
+      <div className="flex min-w-0 items-baseline gap-3 sm:gap-5">
+        <span className="font-family-heading text-[10px] font-bold uppercase tracking-[0.18em] text-ink/40">
+          Ed.
+        </span>
+        <span
+          className="font-family-heading text-xl font-black tabular-nums text-ink sm:text-2xl"
+          data-testid="latest-order-id"
+        >
+          #{order.display_id}
+        </span>
+        <span className="font-mono text-[11px] uppercase tabular-nums tracking-[0.08em] text-ink/55 sm:text-xs">
+          {placedAt.toLocaleDateString("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+          })}
+        </span>
       </div>
 
-      <div className="mt-6 overflow-x-auto border border-ink/20">
-        <table className="w-full min-w-[700px] border-collapse">
-          <thead>
-            <tr className="bg-ink text-surface">
-              <th className="border-r border-surface/20 px-4 py-4 text-left font-family-heading text-base font-bold uppercase tracking-[0.1em]">
-                Date
-              </th>
-              <th className="border-r border-surface/20 px-4 py-4 text-left font-family-heading text-base font-bold uppercase tracking-[0.1em]">
-                Order
-              </th>
-              <th className="border-r border-surface/20 px-4 py-4 text-left font-family-heading text-base font-bold uppercase tracking-[0.1em]">
-                Status
-              </th>
-              <th className="px-4 py-4 text-right font-family-heading text-base font-bold uppercase tracking-[0.1em]">
-                Total
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders && orders.length > 0 ? (
-              orders.map((order) => (
-                <OrderHistoryRow
-                  key={order.id}
-                  order={order}
-                  currencyCode={currencyCode}
-                />
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={4}
-                  className="px-4 py-12 text-center font-family-base text-ink/55"
-                >
-                  No orders yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="flex items-center gap-4 sm:gap-6">
+        <span
+          className={`inline-flex shrink-0 items-center border-2 px-2.5 py-1 font-family-heading text-[10px] font-bold uppercase tracking-[0.14em] sm:text-[11px] ${statusTone(
+            displayStatus
+          )}`}
+        >
+          {displayStatus}
+        </span>
+        <span className="hidden font-family-heading text-[11px] font-bold uppercase tracking-[0.14em] text-ink/55 md:inline">
+          {itemCount} {itemCount === 1 ? "Item" : "Items"}
+        </span>
+        <span
+          className="ml-auto font-family-heading text-base font-black tabular-nums text-ink sm:text-xl"
+          data-testid="latest-order-amount"
+        >
+          {convertToLocale({
+            amount: order.total ?? 0,
+            currency_code: order.currency_code,
+          })}
+        </span>
+        <span
+          aria-hidden
+          className="hidden translate-x-0 text-lg text-ink/35 transition-transform group-hover:translate-x-1 group-hover:text-accent sm:inline"
+        >
+          →
+        </span>
       </div>
+    </LocalizedClientLink>
+  )
+}
+
+function LatestBulletins({
+  orders,
+}: {
+  orders: HttpTypes.StoreOrder[] | null
+}) {
+  const latest = (orders ?? []).slice(0, 3)
+  const total = orders?.length ?? 0
+
+  return (
+    <section className="mt-12 sm:mt-14">
+      <div className="flex flex-col gap-3 border-b-2 border-ink pb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+        <div>
+          <p className="font-family-heading text-[10px] font-bold uppercase tracking-[0.22em] text-accent sm:text-xs">
+            Latest Bulletins
+          </p>
+          <h2 className="mt-2 font-family-heading text-3xl font-black uppercase leading-[0.95] text-ink sm:text-4xl lg:text-5xl">
+            Recent Orders
+          </h2>
+        </div>
+        {total > 0 && (
+          <LocalizedClientLink
+            href="/account/orders"
+            className="group inline-flex items-center gap-2 self-start border-2 border-ink bg-surface px-4 py-2.5 font-family-heading text-[11px] font-bold uppercase tracking-[0.12em] text-ink transition-colors hover:bg-ink hover:text-surface sm:self-end"
+            data-testid="view-all-orders"
+          >
+            <span>
+              View All <span className="tabular-nums">({total})</span>
+            </span>
+            <span
+              aria-hidden
+              className="transition-transform group-hover:translate-x-0.5"
+            >
+              →
+            </span>
+          </LocalizedClientLink>
+        )}
+      </div>
+
+      {latest.length > 0 ? (
+        <div className="mt-2 flex flex-col">
+          {latest.map((order) => (
+            <LatestBulletinRow key={order.id} order={order} />
+          ))}
+        </div>
+      ) : (
+        <div className="mt-6 flex flex-col items-start gap-4 border-2 border-dashed border-ink/30 bg-surface p-6 sm:p-8">
+          <p className="font-family-heading text-lg font-bold uppercase text-ink sm:text-xl">
+            Nothing brewing yet.
+          </p>
+          <p className="font-family-base text-sm text-ink/65 sm:text-base">
+            Place your first order to see it logged here.
+          </p>
+          <LocalizedClientLink
+            href="/store"
+            className="inline-flex border-2 border-ink bg-ink px-5 py-3 font-family-heading text-xs font-bold uppercase tracking-[0.12em] text-surface hover:bg-accent hover:border-accent"
+          >
+            Explore the Ledger →
+          </LocalizedClientLink>
+        </div>
+      )}
+
+      {total > 3 && (
+        <p className="mt-4 font-family-heading text-[11px] font-bold uppercase tracking-[0.14em] text-ink/45">
+          + {total - 3} earlier {total - 3 === 1 ? "edition" : "editions"} in
+          the archive
+        </p>
+      )}
     </section>
   )
 }
 
 function AccountActions(_props: { countryCode: string }) {
   return (
-    <section className="mt-24 border-t-2 border-ink pt-10">
+    <section className="mt-14 border-t-2 border-ink pt-8 sm:mt-20 sm:pt-10">
       <div className="flex justify-end">
-        <LocalizedClientLink href="/auth/logout" className="md:w-auto w-full">
+        <LocalizedClientLink href="/auth/logout" className="w-full md:w-auto">
           <CTAButton
             type="button"
-            className="w-full bg-ink px-8 py-4 font-family-heading text-xl font-bold uppercase md:w-auto"
+            className="w-full bg-ink px-6 py-3 font-family-heading text-base font-bold uppercase tracking-[0.12em] sm:px-8 sm:py-4 sm:text-lg lg:text-xl md:w-auto"
           >
             Sign Out of Ledger
           </CTAButton>
@@ -279,15 +372,13 @@ export default function MonsoonDashboard({
   countryCode,
   region,
 }: DashboardProps) {
-  const currency = orders?.[0]?.currency_code ?? "usd"
-
   return (
-    <main className="w-full px-6 pb-24 pt-14 sm:px-8 lg:px-10 xl:px-12">
+    <main className="w-full overflow-x-clip px-5 pb-20 pt-10 sm:px-8 sm:pt-14 lg:px-10 xl:px-12">
       <MemberHero customer={customer} />
-      <section className="mt-14">
+      <section className="mt-10 sm:mt-14">
         <ProfilePanel customer={customer} region={region} />
       </section>
-      <OrderHistoryTable orders={orders} currencyCode={currency} />
+      <LatestBulletins orders={orders} />
       <AccountActions countryCode={countryCode} />
     </main>
   )

@@ -11,9 +11,9 @@ function FeaturedProductCard({ product }: { product: HttpTypes.StoreProduct }) {
   const tags = (product.tags ?? []).map((t) => t.value).join(", ")
 
   return (
-    <HighlightCard className="flex w-full flex-row gap-4 bg-surface p-5 sm:p-6 max-sm:flex-col md:flex-col">
-      <span className="relative aspect-[4/5] w-2/5 h-fit overflow-hidden max-sm:mx-auto max-sm:w-full md:w-full">
-        <span className="absolute left-2 top-2 z-20 bg-accent px-3 py-1 font-family-heading text-xs font-semibold uppercase text-surface sm:px-4 sm:text-sm">
+    <HighlightCard className="flex w-full min-w-0 flex-col gap-4 bg-surface p-4 sm:p-6">
+      <span className="relative aspect-[4/5] w-full overflow-hidden">
+        <span className="absolute left-2 top-2 z-20 bg-accent px-2 py-1 font-family-heading text-[10px] font-semibold uppercase text-surface sm:px-4 sm:text-sm">
           Details
         </span>
         <Image
@@ -21,18 +21,18 @@ function FeaturedProductCard({ product }: { product: HttpTypes.StoreProduct }) {
           alt={product.title}
           width={400}
           height={500}
-          className="h-fit w-full object-cover"
+          className="h-full w-full object-cover"
         />
       </span>
-      <span className="flex min-w-0 flex-1 flex-col gap-4">
-        <span className="flex flex-col gap-2">
-          <span className="font-family-base flex w-full max-sm:flex-row flex-col md:flex-row items-start text-lg font-bold sm:text-xl lg:text-2xl">
-            <span className="min-w-0 truncate uppercase">{product.title}</span>
-            <span className="md:ml-auto max-sm:ml-auto m-0 shrink-0 text-start">
-              {cheapestPrice?.calculated_price ?? ""}
-            </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-3">
+        <span className="flex flex-col gap-1.5">
+          <span className="min-w-0 truncate font-family-base text-base font-bold uppercase text-ink sm:text-xl lg:text-2xl">
+            {product.title}
           </span>
-          <span className="font-family-base text-sm tracking-tight text-[var(--mc-secondary)] uppercase">
+          <span className="whitespace-nowrap font-family-base text-base font-black tabular-nums text-ink sm:text-lg lg:text-2xl">
+            {cheapestPrice?.calculated_price ?? ""}
+          </span>
+          <span className="font-family-base text-[11px] uppercase leading-snug tracking-tight text-[var(--mc-secondary)] sm:text-sm">
             {tags
               ? `NOTES: ${tags.toUpperCase()}`
               : product.subtitle ?? product.description?.slice(0, 60) ?? ""}
@@ -41,7 +41,7 @@ function FeaturedProductCard({ product }: { product: HttpTypes.StoreProduct }) {
         <LocalizedClientLink href={`/products/${product.handle}`}>
           <button
             type="button"
-            className="w-full bg-ink p-3 font-family-heading text-base font-semibold uppercase text-surface transition-colors hover:bg-accent sm:p-4 sm:text-lg cursor-pointer"
+            className="w-full cursor-pointer bg-ink p-3 font-family-heading text-sm font-semibold uppercase text-surface transition-colors hover:bg-accent sm:p-4 sm:text-lg"
           >
             View Product
           </button>
@@ -66,19 +66,16 @@ export default async function CurrentLedger({
   }
 
   return (
-    <section className="flex flex-col gap-8 px-6 py-14 sm:px-10 sm:py-16 lg:gap-12 lg:px-20 lg:py-20">
-      <span className="flex w-full gap-4 border-b-4 border-ink pb-4 flex-row sm:items-end sm:justify-center">
+    <section className="flex flex-col gap-8 overflow-x-clip px-5 py-14 sm:px-10 sm:py-16 lg:gap-12 lg:px-20 lg:py-20">
+      <span className="flex w-full flex-col gap-4 border-b-4 border-ink pb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
         <span className="font-family-heading text-4xl font-bold uppercase leading-[0.9] sm:text-5xl lg:text-6xl">
           Current <br /> Ledger
         </span>
-        <span className="ml-0 text-end w-full font-family-base text-xs font-medium tracking-tight text-[var(--mc-secondary)] sm:ml-auto sm:text-end sm:text-sm">
-          DIRECT ACQUISITION <br />
-          FROM MICRO-LOTS. NO <br />
-          SUBSCRIPTIONS. ONLY <br />
-          EXCELLENCE.
+        <span className="font-family-base text-xs font-medium uppercase leading-[1.5] tracking-tight text-[var(--mc-secondary)] sm:max-w-[18ch] sm:text-right sm:text-sm">
+          Direct acquisition from micro-lots. No subscriptions. Only excellence.
         </span>
       </span>
-      <div className="grid w-full gap-6 xl:grid-cols-3 xl:gap-8">
+      <div className="grid w-full gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
         {response.products.map((product) => (
           <FeaturedProductCard key={product.id} product={product} />
         ))}

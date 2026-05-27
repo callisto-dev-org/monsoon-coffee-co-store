@@ -13,12 +13,15 @@ import {
 import { getProductPrice } from "@lib/util/get-product-price"
 import { CTAButton } from "@modules/common/components/monsoon/buttons"
 import { HighlightCard } from "@modules/common/components/monsoon/highlight-card"
+import type { CoffeeProfile } from "@lib/data/coffee-profiles"
 
 type Props = {
   product: HttpTypes.StoreProduct
   region: HttpTypes.StoreRegion
   isAuthenticated: boolean
   cart: HttpTypes.StoreCart | null
+  coffeeProfile?: CoffeeProfile | null
+  isCoffeeBeans?: boolean
 }
 
 const optionsAsKeymap = (
@@ -34,6 +37,8 @@ export default function MonsoonProductInfo({
   product,
   isAuthenticated,
   cart,
+  coffeeProfile,
+  isCoffeeBeans = false,
 }: Props) {
   const router = useRouter()
   const pathname = usePathname()
@@ -207,7 +212,36 @@ export default function MonsoonProductInfo({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, isAuthenticated, product.variants])
 
-  const tags = (product.tags ?? []).slice(0, 1).map((t) => t.value)
+  // Show the product's tags as badges at the top. Coffee-Beans products
+  // lead with the roast level (e.g. "DARK ROAST") followed by tags, capped
+  // so the row doesn't grow unbounded.
+  const HERO_BADGE_LIMIT = 4
+  const productTagValues = (product.tags ?? [])
+    .map((t) => t.value)
+    .filter((v): v is string => Boolean(v))
+
+  const heroBadges: string[] = []
+  if (isCoffeeBeans && coffeeProfile?.roast_level) {
+    heroBadges.push(`${coffeeProfile.roast_level} Roast`)
+  }
+  for (const tag of productTagValues) {
+    if (heroBadges.length >= HERO_BADGE_LIMIT) break
+    if (heroBadges.some((b) => b.toLowerCase() === tag.toLowerCase())) continue
+    heroBadges.push(tag)
+  }
+
+  const beanSpecs = (() => {
+    if (!isCoffeeBeans || !coffeeProfile) return null
+    const notes = (coffeeProfile.tasting_notes ?? []).filter(Boolean)
+    const altitude = coffeeProfile.altitude_m
+    const origin = coffeeProfile.origin
+    if (!notes.length && !altitude && !origin) return null
+    return {
+      notes: notes.join(", "),
+      elevation: altitude ? `${altitude} MASL` : null,
+      origin: origin ?? null,
+    }
+  })()
 
   return (
     <div className="max-w-7xl w-full mx-auto font-family-heading grid grid-cols-1 lg:grid-cols-12 py-12 lg:py-20 gap-8 lg:gap-12 px-6">
@@ -232,7 +266,10 @@ export default function MonsoonProductInfo({
           </button>
         ))}
       </div>
-      <HighlightCard className="w-full h-fit col-span-12 lg:col-span-5 order-1 lg:order-2">
+      <HighlightCard
+        size="lg"
+        className="w-full h-fit col-span-12 lg:col-span-5 order-1 lg:order-2"
+      >
         <div className="relative w-full aspect-square">
           <Image
             src={mainImage.url ?? "/monsoon/images/productBig.png"}
@@ -244,10 +281,21 @@ export default function MonsoonProductInfo({
         </div>
       </HighlightCard>
       <div className="col-span-12 lg:col-span-6 flex flex-col gap-4 order-3">
-        {tags[0] && (
-          <span className="text-sm px-3 py-1 font-bold w-fit text-surface bg-accent uppercase">
-            {tags[0]}
-          </span>
+        {heroBadges.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {heroBadges.map((b, i) => (
+              <span
+                key={`${b}-${i}`}
+                className={`text-sm px-3 py-1 font-bold uppercase ${
+                  i === 0
+                    ? "text-surface bg-accent"
+                    : "text-ink border-2 border-ink"
+                }`}
+              >
+                {b}
+              </span>
+            ))}
+          </div>
         )}
         <span className="text-4xl sm:text-5xl lg:text-6xl tracking-tighter font-bold uppercase">
           {product.title}
@@ -267,6 +315,28 @@ export default function MonsoonProductInfo({
           <p className="text-base lg:text-lg opacity-75">
             {product.description}
           </p>
+        )}
+
+        {beanSpecs && (
+          <dl className="mt-2 grid grid-cols-3 border-2 border-ink">
+            {beanSpecs.notes && (
+              <BeanSpecCell
+                label="Tasting Notes"
+                value={beanSpecs.notes}
+                withRightBorder
+              />
+            )}
+            {beanSpecs.elevation && (
+              <BeanSpecCell
+                label="Elevation"
+                value={beanSpecs.elevation}
+                withRightBorder={Boolean(beanSpecs.origin)}
+              />
+            )}
+            {beanSpecs.origin && (
+              <BeanSpecCell label="Origin" value={beanSpecs.origin} />
+            )}
+          </dl>
         )}
 
         <div className="flex flex-col gap-4">
@@ -370,6 +440,29 @@ export default function MonsoonProductInfo({
           SHIPS WITHIN 24 HOURS OF ROASTING
         </span>
       </div>
+    </div>
+  )
+}
+
+function BeanSpecCell({
+  label,
+  value,
+  withRightBorder = false,
+}: {
+  label: string
+  value: string
+  withRightBorder?: boolean
+}) {
+  return (
+    <div
+      className={`flex flex-col gap-1 px-4 py-3 ${
+        withRightBorder ? "border-r-2 border-ink" : ""
+      }`}
+    >
+      <dt className="text-[10px] font-bold uppercase tracking-[0.18em] opacity-55">
+        {label}
+      </dt>
+      <dd className="text-sm font-bold leading-tight">{value}</dd>
     </div>
   )
 }

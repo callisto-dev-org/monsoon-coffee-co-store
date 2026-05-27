@@ -18,7 +18,7 @@ const CartTemplate = ({
 
   if (!hasItems) {
     return (
-      <main className="mx-auto w-full max-w-[88rem] px-6 pb-24 pt-14 sm:px-8 lg:px-12">
+      <main className="mx-auto w-full max-w-[88rem] overflow-x-clip px-5 pb-24 pt-10 sm:px-8 sm:pt-14 lg:px-12">
         <section className="border-b border-ink/40 pb-8">
           <h1 className="font-family-heading text-5xl sm:text-7xl lg:text-8xl font-black uppercase leading-[0.86] text-ink">
             Shopping <br /> Bag
@@ -42,10 +42,11 @@ const CartTemplate = ({
   const itemCount = cart!.items!.reduce((s, i) => s + (i.quantity ?? 0), 0)
 
   return (
-    <main className="mx-auto w-full max-w-[88rem] px-6 pb-24 pt-14 sm:px-8 lg:px-12">
+    <main className="mx-auto w-full max-w-[88rem] overflow-x-clip px-5 pb-24 pt-10 sm:px-8 sm:pt-14 lg:px-12">
       <section className="border-b border-ink/40 pb-8">
-        <h1 className="font-family-heading text-5xl sm:text-7xl lg:text-8xl font-black uppercase leading-[0.86] text-ink">
-          Shopping <br /> Bag
+        <h1 className="font-family-heading text-[clamp(2.75rem,11vw,8rem)] font-black uppercase leading-[0.86] tracking-[-0.02em] text-ink">
+          Shopping <br className="hidden sm:inline" />
+          <span className="sm:hidden"> </span>Bag
         </h1>
         <p className="mt-8 inline-flex items-center gap-4 font-family-heading text-sm font-bold uppercase tracking-[0.2em] text-ink/80">
           <span className="h-px w-12 bg-ink/70" />
@@ -64,8 +65,8 @@ const CartTemplate = ({
         )}
       </section>
 
-      <section className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_390px]">
-        <div className="order-2 lg:order-1">
+      <section className="mt-8 grid gap-8 sm:mt-10 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_390px]">
+        <div className="order-2 min-w-0 lg:order-1">
           {cart!.items!.map((item) => (
             <MonsoonCartItem
               key={item.id}
@@ -75,7 +76,7 @@ const CartTemplate = ({
           ))}
           <MonsoonPromoCode />
         </div>
-        <div className="order-1 lg:order-2">
+        <div className="order-1 min-w-0 lg:order-2">
           <MonsoonCartSummary cart={cart!} />
         </div>
       </section>

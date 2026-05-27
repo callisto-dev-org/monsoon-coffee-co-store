@@ -20,7 +20,7 @@ export const retrieveOrder = async (id: string) => {
       method: "GET",
       query: {
         fields:
-          "*payment_collections.payments,*items,*items.metadata,*items.variant,*items.product",
+          "*payment_collections.payments,*items,*items.metadata,*items.variant,*items.product,*fulfillments,*fulfillments.labels,*shipping_methods",
       },
       headers,
       next,
@@ -164,60 +164,4 @@ export const declineTransferRequest = async (id: string, token: string) => {
     .declineTransfer(id, { token }, {}, headers)
     .then(({ order }) => ({ success: true, error: null, order }))
     .catch((err) => ({ success: false, error: err.message, order: null }))
-}
-
-export type OrderTrackingScan = {
-  date: string | null
-  status: string | null
-  location: string | null
-  remarks: string | null
-}
-
-export type OrderTrackingShipment = {
-  fulfillment_id: string
-  provider_id: string | null
-  awb_number: string | null
-  courier: string | null
-  tracking_number: string | null
-  tracking_url: string | null
-  delivery_partner_name: string | null
-  delivery_partner_phone: string | null
-  shipment_type: string | null
-  current_status: string | null
-  status_time: string | null
-  expected_delivery_date: string | null
-  packed_at: string | null
-  shipped_at: string | null
-  delivered_at: string | null
-  canceled_at: string | null
-  scan_history: OrderTrackingScan[]
-}
-
-export type OrderTrackingResponse = {
-  has_tracking: boolean
-  shipments: OrderTrackingShipment[]
-}
-
-export const retrieveOrderTracking = async (
-  id: string
-): Promise<OrderTrackingResponse | null> => {
-  const headers = {
-    ...(await getAuthHeaders()),
-  }
-
-  const next = {
-    ...(await getCacheOptions(`order-tracking-${id}`)),
-    // Tracking changes frequently while a parcel is moving — give the
-    // server response a short revalidation window so updates surface fast.
-    revalidate: 60,
-  }
-
-  return sdk.client
-    .fetch<OrderTrackingResponse>(`/store/orders/${id}/tracking`, {
-      method: "GET",
-      headers,
-      next,
-      cache: "force-cache",
-    })
-    .catch(() => null)
 }

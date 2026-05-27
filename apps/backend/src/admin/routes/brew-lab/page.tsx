@@ -265,13 +265,14 @@ const BrewLabPage = () => {
   )
 }
 
-type ProductType = {
+type ProductCategory = {
   id: string
-  value: string
+  name: string
+  handle?: string
 }
 
 const VisibilitySection = () => {
-  const [types, setTypes] = useState<ProductType[]>([])
+  const [categories, setCategories] = useState<ProductCategory[]>([])
   const [enabled, setEnabled] = useState<Set<string>>(new Set())
   const [original, setOriginal] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
@@ -281,18 +282,18 @@ const VisibilitySection = () => {
     let cancelled = false
     setLoading(true)
     Promise.all([
-      adminFetch<{ product_types: ProductType[] }>(
-        "/admin/product-types?limit=200"
+      adminFetch<{ product_categories: ProductCategory[] }>(
+        "/admin/product-categories?limit=500&fields=id,name,handle"
       ),
       adminFetch<{
-        brew_settings: { enabled_product_type_ids: string[] | null }
+        brew_settings: { enabled_product_category_ids: string[] | null }
       }>("/admin/brew-settings"),
     ])
-      .then(([typeRes, settingsRes]) => {
+      .then(([catRes, settingsRes]) => {
         if (cancelled) return
-        setTypes(typeRes.product_types ?? [])
+        setCategories(catRes.product_categories ?? [])
         const ids = new Set(
-          settingsRes.brew_settings?.enabled_product_type_ids ?? []
+          settingsRes.brew_settings?.enabled_product_category_ids ?? []
         )
         setEnabled(ids)
         setOriginal(new Set(ids))
@@ -327,7 +328,7 @@ const VisibilitySection = () => {
       await adminFetch("/admin/brew-settings", {
         method: "POST",
         body: JSON.stringify({
-          enabled_product_type_ids: Array.from(enabled),
+          enabled_product_category_ids: Array.from(enabled),
         }),
       })
       setOriginal(new Set(enabled))
@@ -343,11 +344,11 @@ const VisibilitySection = () => {
     <div className="border-t border-ui-border-base px-6 py-6">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <Heading level="h2">Linkable product types</Heading>
+          <Heading level="h2">Linkable product categories</Heading>
           <Text size="small" className="text-ui-fg-muted">
-            Products whose type is selected here can have brew recipes
-            attached. The brew recipes section will appear on those products
-            in admin and on the storefront.
+            Products in the selected categories can have brew recipes
+            attached. The brew recipes section will appear on those products in
+            admin and on the storefront.
           </Text>
         </div>
         <Button onClick={save} disabled={!dirty || saving} isLoading={saving}>
@@ -357,23 +358,25 @@ const VisibilitySection = () => {
 
       {loading ? (
         <Text className="text-ui-fg-muted">Loading…</Text>
-      ) : types.length === 0 ? (
+      ) : categories.length === 0 ? (
         <Text className="text-ui-fg-muted">
-          No product types found. Create one from a product's detail page
-          (Type field) or in Settings.
+          No product categories found. Create one under Settings → Categories.
         </Text>
       ) : (
         <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
-          {types.map((t) => (
+          {categories.map((c) => (
             <label
-              key={t.id}
+              key={c.id}
               className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-ui-bg-base-hover"
             >
               <Checkbox
-                checked={enabled.has(t.id)}
-                onCheckedChange={(v) => toggle(t.id, v === true)}
+                checked={enabled.has(c.id)}
+                onCheckedChange={(v) => toggle(c.id, v === true)}
               />
-              <span className="flex-1 font-medium">{t.value}</span>
+              <span className="flex-1 font-medium">{c.name}</span>
+              {c.handle && (
+                <code className="text-ui-fg-subtle text-xs">{c.handle}</code>
+              )}
             </label>
           ))}
         </div>

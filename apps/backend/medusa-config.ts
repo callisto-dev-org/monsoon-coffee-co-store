@@ -39,6 +39,7 @@ module.exports = defineConfig({
     { resolve: "./src/modules/brew" },
     { resolve: "./src/modules/review" },
     { resolve: "./src/modules/coffee-profile" },
+    { resolve: "./src/modules/filter-category" },
     {
       resolve: "@medusajs/medusa/fulfillment",
       options: {
@@ -80,8 +81,6 @@ module.exports = defineConfig({
               default_height_cm: process.env.SHIPMOZO_DEFAULT_HEIGHT_CM
                 ? Number(process.env.SHIPMOZO_DEFAULT_HEIGHT_CM)
                 : undefined,
-              tracking_url_template:
-                process.env.SHIPMOZO_TRACKING_URL_TEMPLATE,
               cod_payment_provider_ids:
                 process.env.SHIPMOZO_COD_PAYMENT_PROVIDER_IDS
                   ? process.env.SHIPMOZO_COD_PAYMENT_PROVIDER_IDS.split(",")

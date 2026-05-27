@@ -8,16 +8,16 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
   try {
     const { data } = await query.graph({
       entity: "brew_settings",
-      fields: ["enabled_product_type_ids"],
+      fields: ["enabled_product_category_ids"],
       pagination: { take: 1 },
     })
     const row = data?.[0] as
-      | { enabled_product_type_ids?: string[] | null }
+      | { enabled_product_category_ids?: string[] | null }
       | undefined
     res.json({
-      enabled_product_type_ids: row?.enabled_product_type_ids ?? [],
+      enabled_product_category_ids: row?.enabled_product_category_ids ?? [],
     })
   } catch {
-    res.json({ enabled_product_type_ids: [] })
+    res.json({ enabled_product_category_ids: [] })
   }
 }
