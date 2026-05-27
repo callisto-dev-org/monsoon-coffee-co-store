@@ -10,6 +10,16 @@ const ExtractionPointSchema = z.object({
   tds: z.number().nonnegative().optional(),
 })
 
+// Values stored against an admin-defined custom label category. The category
+// schema decides the shape (single → string, multi → string[], text → string,
+// number → number) — the API itself just accepts the union.
+const CustomLabelValueSchema = z.union([
+  z.string(),
+  z.number(),
+  z.array(z.string()),
+  z.null(),
+])
+
 export const UpsertCoffeeProfileSchema = z.object({
   origin: z.string().nullable().optional(),
   altitude_m: z.number().int().positive().nullable().optional(),
@@ -20,6 +30,7 @@ export const UpsertCoffeeProfileSchema = z.object({
   harvest_year: z.number().int().min(1900).max(2100).nullable().optional(),
   recommended_ratio: z.string().nullable().optional(),
   tasting_notes: z.array(z.string()).nullable().optional(),
+  custom_labels: z.record(z.string(), CustomLabelValueSchema).nullable().optional(),
   extraction_profile: z.array(ExtractionPointSchema).nullable().optional(),
 })
 export type UpsertCoffeeProfileSchema = z.infer<

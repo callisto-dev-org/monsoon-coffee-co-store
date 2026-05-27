@@ -1,9 +1,7 @@
-import { defineRouteConfig } from "@medusajs/admin-sdk"
 import {
   Badge,
   Button,
   Checkbox,
-  Container,
   FocusModal,
   Heading,
   Input,
@@ -13,6 +11,7 @@ import {
   toast,
 } from "@medusajs/ui"
 import { useEffect, useMemo, useState } from "react"
+import { adminFetch, slugify, Field } from "./lib"
 
 type FilterCategory = {
   id: string
@@ -20,14 +19,9 @@ type FilterCategory = {
   handle: string
   rank: number
   tag_ids?: string[] | null
-  created_at?: string
-  updated_at?: string
 }
 
-type ProductTag = {
-  id: string
-  value: string
-}
+type ProductTag = { id: string; value: string }
 
 type FormState = {
   id?: string
@@ -44,27 +38,7 @@ const EMPTY_FORM: FormState = {
   tag_ids: [],
 }
 
-async function adminFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, {
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-    ...init,
-  })
-  if (!res.ok) {
-    const body = await res.text().catch(() => "")
-    throw new Error(`HTTP ${res.status}: ${body}`)
-  }
-  return (await res.json()) as T
-}
-
-const slugify = (s: string): string =>
-  (s ?? "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-
-const FilterCategoriesPage = () => {
+export const TaggingCategoriesTab = () => {
   const [categories, setCategories] = useState<FilterCategory[]>([])
   const [tags, setTags] = useState<ProductTag[]>([])
   const [loading, setLoading] = useState(true)
@@ -193,11 +167,14 @@ const FilterCategoriesPage = () => {
   }
 
   async function destroy(c: FilterCategory) {
-    if (!confirm(`Delete filter category "${c.name}"? This cannot be undone.`)) {
+    if (
+      !confirm(`Delete filter category "${c.name}"? This cannot be undone.`)
+    )
       return
-    }
     try {
-      await adminFetch(`/admin/filter-categories/${c.id}`, { method: "DELETE" })
+      await adminFetch(`/admin/filter-categories/${c.id}`, {
+        method: "DELETE",
+      })
       toast.success(`Deleted "${c.name}"`)
       load()
     } catch (e) {
@@ -206,16 +183,16 @@ const FilterCategoriesPage = () => {
   }
 
   return (
-    <Container className="p-0">
+    <div className="flex flex-col">
       <div className="flex items-center justify-between border-b border-ui-border-base px-6 py-4">
         <div>
-          <Heading level="h1">Filter Categories</Heading>
+          <Heading level="h2">Tagging categories</Heading>
           <Text size="small" className="text-ui-fg-muted">
             Group product tags into filter sections shown on the storefront
             (e.g. Origin → Ethiopia, Brazil; Roast Level → Light, Dark).
           </Text>
         </div>
-        <Button onClick={startCreate}>Add filter category</Button>
+        <Button onClick={startCreate}>Add category</Button>
       </div>
 
       {loading ? (
@@ -223,8 +200,8 @@ const FilterCategoriesPage = () => {
       ) : categories.length === 0 ? (
         <div className="px-6 py-12 text-center">
           <Text className="text-ui-fg-muted">
-            No filter categories yet. Create one to start grouping product tags
-            into storefront filters.
+            No filter categories yet. Create one to start grouping product
+            tags into storefront filters.
           </Text>
           <Button className="mt-3" onClick={startCreate} variant="secondary">
             Add your first one
@@ -307,7 +284,7 @@ const FilterCategoriesPage = () => {
         onSave={save}
         onCreateTag={createTag}
       />
-    </Container>
+    </div>
   )
 }
 
@@ -341,8 +318,6 @@ const FilterCategoryModal = ({
   }
 
   function updateName(name: string) {
-    // Auto-derive handle from name on create; leave alone on edit so we
-    // don't change the slug an operator already published.
     if (isEdit) {
       update("name", name)
     } else {
@@ -369,7 +344,6 @@ const FilterCategoryModal = ({
     try {
       const created = await onCreateTag(newTagValue)
       if (created) {
-        // Auto-select the newly created tag
         const set = new Set(state.tag_ids)
         set.add(created.id)
         update("tag_ids", Array.from(set))
@@ -414,9 +388,7 @@ const FilterCategoryModal = ({
               <Field label="Handle *">
                 <Input
                   value={state.handle}
-                  onChange={(e) =>
-                    update("handle", e.target.value.toLowerCase())
-                  }
+                  onChange={(e) => update("handle", e.target.value.toLowerCase())}
                   placeholder="origin"
                   disabled={isEdit}
                 />
@@ -493,10 +465,7 @@ const FilterCategoryModal = ({
                   />
                   <div className="max-h-80 overflow-y-auto rounded-md border border-ui-border-base">
                     {visibleTags.length === 0 ? (
-                      <Text
-                        size="small"
-                        className="px-3 py-4 text-ui-fg-muted"
-                      >
+                      <Text size="small" className="px-3 py-4 text-ui-fg-muted">
                         No tags match "{tagFilter}".
                       </Text>
                     ) : (
@@ -529,22 +498,3 @@ const FilterCategoryModal = ({
     </FocusModal>
   )
 }
-
-const Field = ({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) => (
-  <div>
-    <Label className="mb-1 block">{label}</Label>
-    {children}
-  </div>
-)
-
-export const config = defineRouteConfig({
-  label: "Filter Categories",
-})
-
-export default FilterCategoriesPage

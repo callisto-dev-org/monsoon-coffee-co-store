@@ -21,6 +21,7 @@ const PROFILE_FIELDS = [
   "harvest_year",
   "recommended_ratio",
   "tasting_notes",
+  "custom_labels",
   "extraction_profile",
   "created_at",
   "updated_at",

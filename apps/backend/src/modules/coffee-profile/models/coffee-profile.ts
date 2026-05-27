@@ -18,6 +18,10 @@ const CoffeeProfile = model.define("coffee_profile", {
 
   tasting_notes: model.json().nullable(),
 
+  // Admin-defined label categories beyond the built-in three. Shape:
+  //   { [categoryId]: string | number | string[] }
+  custom_labels: model.json().nullable(),
+
   // Ordered list of extraction samples for the chart. Each point:
   //   { time_s: number; yield_g: number; tds?: number }
   // Plotting time_s on x and yield_g on y gives the extraction curve.

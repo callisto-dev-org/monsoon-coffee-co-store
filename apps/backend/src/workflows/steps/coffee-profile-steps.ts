@@ -7,6 +7,9 @@ export type ExtractionPoint = {
   tds?: number
 }
 
+export type CustomLabelValue = string | number | string[] | null
+export type CustomLabelMap = Record<string, CustomLabelValue>
+
 export type CoffeeProfileInput = {
   origin?: string | null
   altitude_m?: number | null
@@ -17,6 +20,7 @@ export type CoffeeProfileInput = {
   harvest_year?: number | null
   recommended_ratio?: string | null
   tasting_notes?: string[] | null
+  custom_labels?: CustomLabelMap | null
   extraction_profile?: ExtractionPoint[] | null
 }
 
@@ -74,6 +78,7 @@ export const upsertCoffeeProfileStep = createStep(
       harvest_year: b.harvest_year,
       recommended_ratio: b.recommended_ratio,
       tasting_notes: b.tasting_notes,
+      custom_labels: b.custom_labels,
       extraction_profile: b.extraction_profile,
     })
   }

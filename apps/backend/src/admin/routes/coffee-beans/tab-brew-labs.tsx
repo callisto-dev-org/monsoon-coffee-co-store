@@ -1,9 +1,7 @@
-import { defineRouteConfig } from "@medusajs/admin-sdk"
 import {
   Badge,
   Button,
   Checkbox,
-  Container,
   FocusModal,
   Heading,
   IconButton,
@@ -15,6 +13,7 @@ import {
   toast,
 } from "@medusajs/ui"
 import { useEffect, useState } from "react"
+import { adminFetch, slugifyKey, Field } from "./lib"
 
 type ParamSchemaItem = { key: string; label: string; unit?: string }
 type StepItem = { name: string; description: string }
@@ -28,13 +27,9 @@ type BrewMethod = {
   image_url?: string | null
   param_schema?: ParamSchemaItem[] | null
   steps?: StepItem[] | null
-  created_at?: string
-  updated_at?: string
 }
 
-type FormState = Omit<BrewMethod, "id" | "created_at" | "updated_at"> & {
-  id?: string
-}
+type FormState = Omit<BrewMethod, "id"> & { id?: string }
 
 const EMPTY_FORM: FormState = {
   slug: "",
@@ -46,20 +41,7 @@ const EMPTY_FORM: FormState = {
   steps: [],
 }
 
-async function adminFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, {
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-    ...init,
-  })
-  if (!res.ok) {
-    const body = await res.text().catch(() => "")
-    throw new Error(`HTTP ${res.status}: ${body}`)
-  }
-  return (await res.json()) as T
-}
-
-const BrewLabPage = () => {
+export const BrewLabsTab = () => {
   const [methods, setMethods] = useState<BrewMethod[]>([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
@@ -154,9 +136,8 @@ const BrewLabPage = () => {
   }
 
   async function destroy(m: BrewMethod) {
-    if (!confirm(`Delete brew method "${m.name}"? This cannot be undone.`)) {
+    if (!confirm(`Delete brew method "${m.name}"? This cannot be undone.`))
       return
-    }
     try {
       await adminFetch(`/admin/brew-methods/${m.id}`, { method: "DELETE" })
       toast.success(`Deleted "${m.name}"`)
@@ -167,13 +148,13 @@ const BrewLabPage = () => {
   }
 
   return (
-    <Container className="p-0">
+    <div className="flex flex-col">
       <div className="flex items-center justify-between border-b border-ui-border-base px-6 py-4">
         <div>
-          <Heading level="h1">Brew Lab</Heading>
+          <Heading level="h2">Brew methods</Heading>
           <Text size="small" className="text-ui-fg-muted">
-            Extraction protocols shared across coffee products. Per-bean values
-            live as brew recipes on each product.
+            Extraction protocols shared across coffee products. Per-bean
+            recipes are attached on each bean.
           </Text>
         </div>
         <Button onClick={startCreate}>Add brew method</Button>
@@ -261,15 +242,11 @@ const BrewLabPage = () => {
       />
 
       <VisibilitySection />
-    </Container>
+    </div>
   )
 }
 
-type ProductCategory = {
-  id: string
-  name: string
-  handle?: string
-}
+type ProductCategory = { id: string; name: string; handle?: string }
 
 const VisibilitySection = () => {
   const [categories, setCategories] = useState<ProductCategory[]>([])
@@ -347,8 +324,8 @@ const VisibilitySection = () => {
           <Heading level="h2">Linkable product categories</Heading>
           <Text size="small" className="text-ui-fg-muted">
             Products in the selected categories can have brew recipes
-            attached. The brew recipes section will appear on those products in
-            admin and on the storefront.
+            attached. The brew recipes section will appear on those products
+            in admin and on the storefront.
           </Text>
         </div>
         <Button onClick={save} disabled={!dirty || saving} isLoading={saving}>
@@ -430,10 +407,7 @@ const BrewMethodModal = ({
   }
 
   function removeParam(i: number) {
-    update(
-      "param_schema",
-      params.filter((_, idx) => idx !== i)
-    )
+    update("param_schema", params.filter((_, idx) => idx !== i))
   }
 
   function updateStep(i: number, patch: Partial<StepItem>) {
@@ -445,15 +419,15 @@ const BrewMethodModal = ({
   function addStep() {
     update("steps", [
       ...steps,
-      { name: `Step ${String(steps.length + 1).padStart(2, "0")}`, description: "" },
+      {
+        name: `Step ${String(steps.length + 1).padStart(2, "0")}`,
+        description: "",
+      },
     ])
   }
 
   function removeStep(i: number) {
-    update(
-      "steps",
-      steps.filter((_, idx) => idx !== i)
-    )
+    update("steps", steps.filter((_, idx) => idx !== i))
   }
 
   return (
@@ -462,7 +436,9 @@ const BrewMethodModal = ({
         <FocusModal.Header>
           <div className="flex flex-1 items-center justify-between">
             <Heading level="h2">
-              {isEdit ? `Edit ${state.name || "brew method"}` : "New brew method"}
+              {isEdit
+                ? `Edit ${state.name || "brew method"}`
+                : "New brew method"}
             </Heading>
             <Button onClick={onSave} disabled={saving} isLoading={saving}>
               {isEdit ? "Save changes" : "Create"}
@@ -518,8 +494,7 @@ const BrewMethodModal = ({
                 <div>
                   <Label>Param schema</Label>
                   <Text size="small" className="text-ui-fg-muted">
-                    Fields the recipe form will collect per-bean. Each param
-                    becomes an input on the product&apos;s brew recipe form.
+                    Fields the recipe form will collect per-bean.
                   </Text>
                 </div>
                 <Button variant="secondary" size="small" onClick={addParam}>
@@ -529,8 +504,7 @@ const BrewMethodModal = ({
               {params.length === 0 ? (
                 <div className="rounded-md border border-dashed border-ui-border-base px-4 py-6 text-center">
                   <Text size="small" className="text-ui-fg-muted">
-                    No params yet. Add one to collect values like grain size,
-                    temperature, or ratio from each bean.
+                    No params yet.
                   </Text>
                 </div>
               ) : (
@@ -566,15 +540,11 @@ const BrewMethodModal = ({
                           </Label>
                           <Input
                             value={p.label}
-                            onChange={(e) => updateParamLabel(i, e.target.value)}
+                            onChange={(e) =>
+                              updateParamLabel(i, e.target.value)
+                            }
                             placeholder="Grain size"
                           />
-                          <Text
-                            size="xsmall"
-                            className="mt-1 text-ui-fg-muted"
-                          >
-                            Shown next to the input on the recipe form.
-                          </Text>
                         </div>
                         <div className="sm:col-span-4">
                           <Label
@@ -592,12 +562,6 @@ const BrewMethodModal = ({
                             }
                             placeholder="grain_size"
                           />
-                          <Text
-                            size="xsmall"
-                            className="mt-1 text-ui-fg-muted"
-                          >
-                            JSON key on recipe.params. lowercase + underscores.
-                          </Text>
                         </div>
                         <div className="sm:col-span-3">
                           <Label
@@ -611,14 +575,8 @@ const BrewMethodModal = ({
                             onChange={(e) =>
                               updateParam(i, { unit: e.target.value })
                             }
-                            placeholder="°C, ml, %"
+                            placeholder="°C, ml"
                           />
-                          <Text
-                            size="xsmall"
-                            className="mt-1 text-ui-fg-muted"
-                          >
-                            Optional suffix.
-                          </Text>
                         </div>
                       </div>
                     </div>
@@ -689,30 +647,3 @@ const BrewMethodModal = ({
     </FocusModal>
   )
 }
-
-const Field = ({
-  label,
-  children,
-  colSpan,
-}: {
-  label: string
-  children: React.ReactNode
-  colSpan?: boolean
-}) => (
-  <div className={colSpan ? "md:col-span-2" : undefined}>
-    <Label className="mb-1 block">{label}</Label>
-    {children}
-  </div>
-)
-
-const slugifyKey = (s: string): string =>
-  (s ?? "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-
-export const config = defineRouteConfig({
-  label: "Brew Lab",
-})
-
-export default BrewLabPage
