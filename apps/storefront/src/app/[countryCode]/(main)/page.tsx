@@ -3,6 +3,7 @@ import { Metadata } from "next"
 import Hero from "@modules/home/components/hero"
 import AboutSection from "@modules/home/components/about"
 import Newsletter from "@modules/home/components/newsletter"
+import ContactCta from "@modules/home/components/contact-cta"
 import CurrentLedger from "@modules/home/components/current-ledger"
 import { getRegion } from "@lib/data/regions"
 
@@ -40,6 +41,7 @@ export default async function Home(props: {
         </section>
       )}
       <AboutSection />
+      <ContactCta />
       <Newsletter />
     </>
   )

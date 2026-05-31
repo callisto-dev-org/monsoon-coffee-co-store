@@ -6,6 +6,10 @@ import { coffeeBeanSettingsMiddlewares } from "./admin/coffee-bean-settings/midd
 import { coffeeProfileMiddlewares } from "./admin/products/[id]/coffee-profile/middlewares"
 import { filterCategoryMiddlewares } from "./admin/filter-categories/middlewares"
 import { reviewStoreMiddlewares } from "./store/products/[id]/reviews/middlewares"
+import { contactStoreMiddlewares } from "./store/contact/middlewares"
+import { newsletterStoreMiddlewares } from "./store/newsletter/middlewares"
+import { contactMessageAdminMiddlewares } from "./admin/contact-messages/middlewares"
+import { newsletterAdminMiddlewares } from "./admin/newsletter/middlewares"
 
 export default defineMiddlewares({
   routes: [
@@ -26,5 +30,9 @@ export default defineMiddlewares({
     ...coffeeProfileMiddlewares,
     ...filterCategoryMiddlewares,
     ...reviewStoreMiddlewares,
+    ...contactStoreMiddlewares,
+    ...newsletterStoreMiddlewares,
+    ...contactMessageAdminMiddlewares,
+    ...newsletterAdminMiddlewares,
   ],
 })

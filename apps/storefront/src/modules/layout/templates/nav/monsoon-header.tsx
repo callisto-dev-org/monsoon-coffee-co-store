@@ -49,6 +49,15 @@ export default function MonsoonHeader({
           <Link className={linkClass(`${prefix}/store`)} href={`${prefix}/store`}>
             Shop
           </Link>
+          <Link className={linkClass(`${prefix}/about`)} href={`${prefix}/about`}>
+            About
+          </Link>
+          <Link
+            className={linkClass(`${prefix}/contact`)}
+            href={`${prefix}/contact`}
+          >
+            Contact
+          </Link>
         </nav>
 
         <div className="flex h-full w-fit items-center gap-5">
@@ -129,6 +138,15 @@ export default function MonsoonHeader({
           </Link>
           <Link className={linkClass(`${prefix}/`)} href={`${prefix}/`}>
             Story
+          </Link>
+          <Link className={linkClass(`${prefix}/about`)} href={`${prefix}/about`}>
+            About
+          </Link>
+          <Link
+            className={linkClass(`${prefix}/contact`)}
+            href={`${prefix}/contact`}
+          >
+            Contact
           </Link>
 
           <div className="mt-2 flex items-center gap-5 border-t border-ink/20 pt-4">

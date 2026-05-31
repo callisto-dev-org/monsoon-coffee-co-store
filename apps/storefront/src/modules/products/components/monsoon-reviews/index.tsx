@@ -232,6 +232,7 @@ export default function MonsoonReviews({
         <ReviewForm
           productId={productId}
           productHandle={productHandle}
+          countryCode={countryCode}
           variants={productVariants}
           onCancel={() => setFormOpen(false)}
           onCreated={(review) => {
@@ -558,12 +559,14 @@ type Draft = {
 function ReviewForm({
   productId,
   productHandle,
+  countryCode,
   variants = [],
   onCancel,
   onCreated,
 }: {
   productId: string
   productHandle: string
+  countryCode: string
   variants?: ProductVariantOption[]
   onCancel: () => void
   onCreated: (review: Review) => void
@@ -580,6 +583,7 @@ function ReviewForm({
   const [images, setImages] = useState<Draft[]>([])
   const [urlDraft, setUrlDraft] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [needsAuth, setNeedsAuth] = useState(false)
   const [pending, start] = useTransition()
   const fileInput = useRef<HTMLInputElement>(null)
   const dragIndex = useRef<number | null>(null)
@@ -698,6 +702,7 @@ function ReviewForm({
   function submit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    setNeedsAuth(false)
     if (!body.trim() || body.trim().length < 2) {
       setError("Please write at least a few words.")
       return
@@ -713,25 +718,45 @@ function ReviewForm({
         images: images.map((d) => d.payload),
       })
       if (!res.ok) {
-        setError(res.error || "Could not submit review.")
+        if (res.needsAuth) {
+          setNeedsAuth(true)
+          setError(
+            "Your session has expired. Please sign in again to post your review."
+          )
+        } else {
+          setError(res.error || "Could not submit review.")
+        }
         return
       }
       const picked = variants.find((v) => v.id === variantId)
-      onCreated({
-        id: `temp_${Date.now()}`,
-        product_id: productId,
-        customer_id: null,
-        customer_name: null,
-        variant_id: picked?.id ?? null,
-        variant_title: picked?.title ?? null,
-        rating,
-        title: title.trim() || null,
-        body: body.trim(),
-        // Optimistic: use the local previews. Server reconciles on next refresh.
-        images: images.map((d) => d.preview),
-        status: "published",
-        created_at: new Date().toISOString(),
-      })
+      // Prefer the server's record — it carries the real reviewer name snapshot
+      // and uploaded image URLs. Fall back to a local optimistic object, but
+      // still keep the local image previews so they render instantly.
+      const created = res.review
+      onCreated(
+        created
+          ? {
+              ...created,
+              images:
+                created.images && created.images.length
+                  ? created.images
+                  : images.map((d) => d.preview),
+            }
+          : {
+              id: `temp_${Date.now()}`,
+              product_id: productId,
+              customer_id: null,
+              customer_name: null,
+              variant_id: picked?.id ?? null,
+              variant_title: picked?.title ?? null,
+              rating,
+              title: title.trim() || null,
+              body: body.trim(),
+              images: images.map((d) => d.preview),
+              status: "published",
+              created_at: new Date().toISOString(),
+            }
+      )
     })
   }
 
@@ -934,12 +959,22 @@ function ReviewForm({
       </div>
 
       {error && (
-        <p
+        <div
           role="alert"
-          className="border-l-4 border-red-700 bg-red-50 px-3 py-2 text-sm font-bold uppercase tracking-[0.14em] text-red-700"
+          className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-4 border-red-700 bg-red-50 px-3 py-2 text-sm font-bold uppercase tracking-[0.14em] text-red-700"
         >
-          {error}
-        </p>
+          <span>{error}</span>
+          {needsAuth && (
+            <Link
+              href={`/${countryCode}/auth/login?returnTo=${encodeURIComponent(
+                `/${countryCode}/products/${productHandle}#reviews`
+              )}`}
+              className="underline underline-offset-2 hover:text-red-900"
+            >
+              Sign in
+            </Link>
+          )}
+        </div>
       )}
 
       <div className="flex items-center justify-end gap-3 pt-2">

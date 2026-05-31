@@ -12,7 +12,7 @@ function FeaturedProductCard({ product }: { product: HttpTypes.StoreProduct }) {
 
   return (
     <HighlightCard className="flex w-full min-w-0 flex-col gap-4 bg-surface p-4 sm:p-6">
-      <span className="relative aspect-[4/5] w-full overflow-hidden">
+      <span className="relative aspect-square w-full overflow-hidden">
         <span className="absolute left-2 top-2 z-20 bg-accent px-2 py-1 font-family-heading text-[10px] font-semibold uppercase text-surface sm:px-4 sm:text-sm">
           Details
         </span>
@@ -25,17 +25,17 @@ function FeaturedProductCard({ product }: { product: HttpTypes.StoreProduct }) {
         />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-3">
-        <span className="flex flex-col gap-1.5">
+        <span className="flex min-w-0 flex-col gap-1.5">
           <span className="min-w-0 truncate font-family-base text-base font-bold uppercase text-ink sm:text-xl lg:text-2xl">
             {product.title}
           </span>
           <span className="whitespace-nowrap font-family-base text-base font-black tabular-nums text-ink sm:text-lg lg:text-2xl">
             {cheapestPrice?.calculated_price ?? ""}
           </span>
-          <span className="font-family-base text-[11px] uppercase leading-snug tracking-tight text-[var(--mc-secondary)] sm:text-sm">
+          <span className="line-clamp-2 min-w-0 font-family-base text-[11px] uppercase leading-snug tracking-tight text-[var(--mc-secondary)] sm:text-sm">
             {tags
               ? `NOTES: ${tags.toUpperCase()}`
-              : product.subtitle ?? product.description?.slice(0, 60) ?? ""}
+              : product.subtitle ?? product.description ?? ""}
           </span>
         </span>
         <LocalizedClientLink href={`/products/${product.handle}`}>
@@ -71,9 +71,15 @@ export default async function CurrentLedger({
         <span className="font-family-heading text-4xl font-bold uppercase leading-[0.9] sm:text-5xl lg:text-6xl">
           Current <br /> Ledger
         </span>
-        <span className="font-family-base text-xs font-medium uppercase leading-[1.5] tracking-tight text-[var(--mc-secondary)] sm:max-w-[18ch] sm:text-right sm:text-sm">
-          Direct acquisition from micro-lots. No subscriptions. Only excellence.
-        </span>
+        <LocalizedClientLink
+          href="/store"
+          className="group/all inline-flex shrink-0 items-center gap-2 font-family-base text-xs font-semibold uppercase tracking-tight text-[var(--mc-secondary)] transition-colors hover:text-ink sm:text-sm"
+        >
+          View all products
+          <span aria-hidden className="transition-transform group-hover/all:translate-x-1">
+            →
+          </span>
+        </LocalizedClientLink>
       </span>
       <div className="grid w-full gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
         {response.products.map((product) => (

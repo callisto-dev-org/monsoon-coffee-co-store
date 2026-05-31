@@ -64,7 +64,7 @@ export type CreateReviewInput = {
 }
 
 export type CreateReviewResult =
-  | { ok: true }
+  | { ok: true; review?: Review }
   | { ok: false; error: string; needsAuth?: boolean }
 
 export async function createProductReview(
@@ -76,21 +76,24 @@ export async function createProductReview(
   }
 
   try {
-    await sdk.client.fetch(`/store/products/${input.product_id}/reviews`, {
-      method: "POST",
-      headers,
-      body: {
-        variant_id: input.variant_id || undefined,
-        rating: input.rating,
-        title: input.title || undefined,
-        body: input.body,
-        images: input.images?.length ? input.images : undefined,
-      },
-    })
+    const res = await sdk.client.fetch<{ review: Review }>(
+      `/store/products/${input.product_id}/reviews`,
+      {
+        method: "POST",
+        headers,
+        body: {
+          variant_id: input.variant_id || undefined,
+          rating: input.rating,
+          title: input.title || undefined,
+          body: input.body,
+          images: input.images?.length ? input.images : undefined,
+        },
+      }
+    )
     if (input.productHandle) {
       revalidatePath(`/[countryCode]/(main)/products/${input.productHandle}`, "page")
     }
-    return { ok: true }
+    return { ok: true, review: res?.review }
   } catch (e: any) {
     const msg: string =
       e?.message ||

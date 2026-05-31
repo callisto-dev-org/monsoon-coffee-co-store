@@ -100,11 +100,11 @@ export default function AboutSection() {
           monitoring moisture loss and first crack with religious intensity.
         </span>
         <LocalizedClientLink
-          href="/store"
+          href="/about"
           className="group relative flex w-fit cursor-pointer items-center gap-2 font-family-heading text-base font-semibold uppercase text-ink sm:text-xl lg:text-2xl"
         >
           <span className="before:border-b-4 py-1 before:border-accent before:absolute before:w-full before:h-full before:scale-x-0 before:origin-left before:transition-all group-hover:before:scale-x-100 relative">
-            EXPLORE OUR ROASTERY
+            ABOUT US
           </span>
           <span className="text-3xl transition-transform group-hover:translate-x-2 sm:text-4xl">
             <ArrowRightAlt />
