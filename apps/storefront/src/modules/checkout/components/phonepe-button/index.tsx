@@ -57,6 +57,7 @@ type Props = {
   countryCode: string
   className?: string
   children?: React.ReactNode
+  disabled?: boolean
 }
 
 export default function PhonePeButton({
@@ -64,6 +65,7 @@ export default function PhonePeButton({
   countryCode,
   className,
   children,
+  disabled,
 }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -124,7 +126,7 @@ export default function PhonePeButton({
       <button
         type="button"
         onClick={handleClick}
-        disabled={loading || !session}
+        disabled={disabled || loading || !session}
         className={className}
       >
         {loading ? "Processing…" : children ?? "Pay with PhonePe"}

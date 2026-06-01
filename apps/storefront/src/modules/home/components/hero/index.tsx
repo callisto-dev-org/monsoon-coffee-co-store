@@ -14,16 +14,15 @@ export default function Hero() {
         </span>
         <span className="flex flex-col leading-[0.9]">
           <span className="text-center font-family-heading text-[clamp(2.75rem,16vw,8rem)] font-bold uppercase tracking-wide text-ink">
-            THE RAW
+            MONSOON
           </span>
           <span className="text-center font-family-heading text-[clamp(2.75rem,16vw,8rem)] font-bold uppercase tracking-wide text-accent">
-            ROAST.
+            COFFEE CO.
           </span>
         </span>
         <span className="w-full max-w-3xl text-balance text-center font-family-base text-[15px] font-medium tracking-tight text-[var(--mc-secondary)] sm:text-lg lg:text-xl">
-          Our process is a ledger of heat, time, and obsession. We roast for
-          clarity, not comfort. Unapologetic specialty coffee for those who
-          demand more from their morning ritual.
+          Explore unique coffees from some of the most innovative and unique
+          farms in India, roasted to bring out the best in each bean.
         </span>
         <span className="flex w-full flex-col gap-3 font-family-heading sm:w-auto sm:flex-row sm:gap-4">
           <LocalizedClientLink href="/store">

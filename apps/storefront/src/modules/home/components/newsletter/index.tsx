@@ -28,10 +28,10 @@ export default function Newsletter() {
   return (
     <section className="flex w-full flex-col items-center justify-center gap-6 bg-muted px-6 py-14 font-family-heading sm:px-8 sm:py-16 lg:gap-8">
       <span className="text-center text-3xl font-bold text-surface sm:text-4xl lg:text-5xl">
-        JOIN THE ROASTER&apos;S LIST.
+        GET NOTIFIED FIRST.
       </span>
       <span className="text-center text-base text-surface/80 sm:text-lg">
-        Exclusive access to micro-lot drops and seasonal cupping notes.
+        Hear about our latest drops before everyone else.
       </span>
       <form
         onSubmit={onSubmit}

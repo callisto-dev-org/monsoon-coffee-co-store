@@ -28,6 +28,7 @@ export default function CollectionTemplate({
           <h1>{collection.title}</h1>
         </div>
         <Suspense
+          key={`${sort}-${pageNumber}-${collection.id}`}
           fallback={
             <SkeletonProductGrid
               numberOfProducts={collection.products?.length}

@@ -36,6 +36,8 @@ export default function MonsoonProductCard({ product }: ProductCardProps) {
             alt={product.title}
             width={400}
             height={500}
+            loading="lazy"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1536px) 25vw, 320px"
             className="aspect-[275/346] h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         </HighlightCard>

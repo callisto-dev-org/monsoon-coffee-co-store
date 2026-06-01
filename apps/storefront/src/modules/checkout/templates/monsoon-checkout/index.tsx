@@ -2,10 +2,8 @@ import { HttpTypes } from "@medusajs/types"
 
 import { convertToLocale } from "@lib/util/money"
 import MonsoonPaymentPicker from "@modules/checkout/components/monsoon-payment-picker"
-import PhonePeButton from "@modules/checkout/components/phonepe-button"
-import { placeOrderAction } from "@modules/checkout/actions"
+import PlaceOrder from "@modules/checkout/components/place-order"
 import { isPhonePe } from "@lib/constants"
-import { CTAButton } from "@modules/common/components/monsoon/buttons"
 import { CheckIcon } from "@modules/common/icons/monsoon/check"
 import { PincodeEstimateProvider } from "@modules/checkout/components/pincode-estimate-context"
 import AddressPincodeCheck from "@modules/checkout/components/address-pincode-check"
@@ -65,7 +63,7 @@ export default async function MonsoonCheckout({
     (s) => s.status === "pending"
   )
   const hasPaymentSession = !!activePaymentSession
-  const usingPhonePe = isPhonePe(activePaymentSession?.provider_id)
+  const usingPhonePe = !!isPhonePe(activePaymentSession?.provider_id)
 
   const canPlaceOrder = hasAddress && hasPaymentSession
 
@@ -141,49 +139,16 @@ export default async function MonsoonCheckout({
                   <p className="font-family-base text-sm text-ink/65">
                     Complete the previous steps to enable order placement.
                   </p>
-                ) : usingPhonePe ? (
-                  <div className="flex flex-col gap-4">
-                    <p className="font-family-base text-sm text-ink/65">
-                      By placing your order you confirm you have read and agree
-                      to Monsoon Coffee Co.&apos;s terms. You&apos;ll complete
-                      payment in PhonePe&apos;s secure checkout window.
-                    </p>
-                    <PhonePeButton
-                      cart={cart}
-                      countryCode={countryCode}
-                      className="w-full border-2 border-ink bg-ink px-4 py-3 font-family-heading text-sm font-bold uppercase tracking-[0.12em] text-surface hover:bg-surface hover:text-ink disabled:opacity-60 sm:py-4 sm:text-base sm:tracking-[0.16em] lg:text-lg"
-                    >
-                      {`Pay with PhonePe — ${convertToLocale({
-                        amount: cart.total ?? 0,
-                        currency_code: currency,
-                      })}`}
-                    </PhonePeButton>
-                  </div>
                 ) : (
-                  <form
-                    action={placeOrderAction}
-                    className="flex flex-col gap-4"
-                  >
-                    <input
-                      type="hidden"
-                      name="country_code"
-                      value={countryCode}
-                    />
-                    <p className="font-family-base text-sm text-ink/65">
-                      By placing your order you confirm you have read and agree
-                      to Monsoon Coffee Co.&apos;s terms.
-                    </p>
-                    <CTAButton
-                      type="submit"
-                      className="w-full px-4 py-3 font-family-heading text-sm font-bold uppercase tracking-[0.12em] sm:py-4 sm:text-base sm:tracking-[0.16em] lg:text-lg"
-                    >
-                      Place Order —{" "}
-                      {convertToLocale({
-                        amount: cart.total ?? 0,
-                        currency_code: currency,
-                      })}
-                    </CTAButton>
-                  </form>
+                  <PlaceOrder
+                    cart={cart}
+                    countryCode={countryCode}
+                    usingPhonePe={usingPhonePe}
+                    totalLabel={convertToLocale({
+                      amount: cart.total ?? 0,
+                      currency_code: currency,
+                    })}
+                  />
                 )}
               </div>
             </section>

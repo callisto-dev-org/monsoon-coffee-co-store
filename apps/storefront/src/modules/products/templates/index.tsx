@@ -7,6 +7,7 @@ import { HttpTypes } from "@medusajs/types"
 import MonsoonProductInfo from "@modules/products/components/monsoon-product-info"
 import MonsoonProductCarousel from "@modules/products/components/monsoon-carousel"
 import MonsoonCoffeeSpec from "@modules/products/components/monsoon-coffee-spec"
+import MonsoonLoader from "@modules/common/components/monsoon/loader"
 import { isBrewLabEnabledForProduct, listProductBrews } from "@lib/data/brews"
 import { getProductCoffeeProfile } from "@lib/data/coffee-profiles"
 import { listProductReviews } from "@lib/data/reviews"
@@ -15,7 +16,9 @@ const MonsoonBrewLab = dynamic(
   () => import("@modules/products/components/monsoon-brew-lab"),
   {
     loading: () => (
-      <div className="h-[480px] w-full animate-pulse bg-surface/40" aria-hidden />
+      <div className="flex h-[480px] w-full items-center justify-center bg-surface">
+        <MonsoonLoader label="Loading brew lab" />
+      </div>
     ),
   }
 )
@@ -24,7 +27,9 @@ const MonsoonReviews = dynamic(
   () => import("@modules/products/components/monsoon-reviews"),
   {
     loading: () => (
-      <div className="h-[420px] w-full animate-pulse bg-surface/40" aria-hidden />
+      <div className="flex h-[420px] w-full items-center justify-center bg-surface">
+        <MonsoonLoader label="Loading reviews" />
+      </div>
     ),
   }
 )

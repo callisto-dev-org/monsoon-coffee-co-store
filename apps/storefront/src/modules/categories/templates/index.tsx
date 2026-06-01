@@ -78,6 +78,7 @@ export default function CategoryTemplate({
           </div>
         )}
         <Suspense
+          key={`${sort}-${pageNumber}-${category.id}`}
           fallback={
             <SkeletonProductGrid
               numberOfProducts={category.products?.length ?? 8}

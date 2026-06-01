@@ -15,13 +15,12 @@ export default function AboutSection() {
             ORIGIN & PHILOSOPHY
           </span>
           <span className="font-family-heading text-[clamp(2.5rem,12vw,4rem)] font-extrabold leading-[0.9] text-surface sm:text-6xl lg:text-7xl xl:text-8xl">
-            SOURCED <br /> BY <br /> STORM.
+            METICULOUSLY <br /> SOURCED.
           </span>
           <div className="py-1 font-family-base text-base font-light text-surface/80 sm:py-4 sm:text-xl lg:text-xl xl:text-2xl">
-            We don&apos;t just buy beans. We hunt for the erratic, the bold, and
-            the uncompromising. Our sourcing philosophy is built on direct
-            relationships with farmers who embrace the chaos of the monsoon
-            season.
+            We are picky and adamant about the coffees we source. Our sourcing
+            philosophy is built on direct relationships with farmers who are
+            equally insistent on high quality standards.
           </div>
           <div className="flex w-full flex-col gap-6 border-t-[3px] border-surface pt-6 font-family-heading sm:flex-row sm:pt-8">
             <span className="flex w-full flex-col gap-2 uppercase text-surface sm:w-1/2">
@@ -53,11 +52,12 @@ export default function AboutSection() {
             <div className="flex w-full flex-col bg-accent p-6 sm:p-10 lg:w-1/2 lg:p-16 xl:p-20">
               <span className="mt-auto flex flex-col lg:ml-auto">
                 <span className="font-family-heading text-[clamp(1.875rem,8vw,2.25rem)] font-semibold uppercase leading-[0.95] text-surface sm:text-4xl lg:text-5xl">
-                  The Heat <br /> Curve
+                  Precision <br /> Roasting
                 </span>
                 <span className="mt-3 w-full text-base font-light text-surface/80 sm:mt-4 sm:text-lg lg:w-4/5">
-                  Every roast is choreographed: development time, drum speed,
-                  airflow. Variables become rituals; rituals become flavor.
+                  We roast in extremely small batches, allowing us to have full
+                  control over the roast and quality. If a cup doesn&apos;t pass
+                  our strict quality standards, we don&apos;t ship it out.
                 </span>
               </span>
             </div>
@@ -70,9 +70,10 @@ export default function AboutSection() {
                   The Lab
                 </span>
                 <span className="w-full text-base font-light text-ink/80 sm:mt-2 sm:text-lg">
-                  Our lab is a sanctuary of precision and obsession. Here, we
-                  dissect every variable of the roasting process to unlock the
-                  full potential of each bean. Science meets art.
+                  All our roast profiles are subjected to rigorous and
+                  meticulous cupping, as well as testing on multiple brewing
+                  methods. We want to make sure you find the right coffee for
+                  your brewing style.
                 </span>
               </span>
               <div className="relative h-56 w-full sm:h-80 lg:h-auto lg:w-1/2">
@@ -107,12 +108,12 @@ export default function AboutSection() {
             Behind the machine
           </span>
           <span className="font-family-heading text-[clamp(2rem,9vw,2.5rem)] font-bold uppercase leading-[0.95] text-ink sm:text-5xl lg:text-6xl xl:text-7xl">
-            THE PRECISION <br /> OF HEAT.
+            OUR <br /> HARDWARE.
           </span>
           <span className="font-family-base text-base font-light text-[var(--mc-secondary)] sm:text-lg lg:text-xl">
-            Every batch is treated as a unique chemical, architectural project.
-            We don&apos;t follow factory presets; we listen to the bean,
-            monitoring moisture loss and first crack with religious intensity.
+            All our coffees are roasted on a state of the art Kaleido M10S
+            Carbon Fiber IR roaster. This gives us immense control over the
+            roast profile and ensures phenomenal batch-to-batch consistency.
           </span>
           <LocalizedClientLink
             href="/about"
