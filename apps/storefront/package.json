@@ -9,8 +9,9 @@
   ],
   "scripts": {
     "dev": "next dev --turbopack -p 8000",
-    "build": "next build",
-    "start": "next start -p 8000",
+    "build": "next build && pnpm run copy:standalone",
+    "copy:standalone": "cp -r .next/static .next/standalone/apps/storefront/.next/ && cp -r public .next/standalone/apps/storefront/ && (cp .env.local .next/standalone/apps/storefront/ 2>/dev/null || true)",
+    "start": "PORT=8000 HOSTNAME=0.0.0.0 node .next/standalone/apps/storefront/server.js",
     "lint": "next lint",
     "analyze": "ANALYZE=true next build"
   },
