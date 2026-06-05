@@ -8,7 +8,7 @@
 # recipe from apps/backend/package.json (symlink node_modules, copy .env) via
 # docker-entrypoint.sh — we never `pnpm install` inside .medusa/server.
 # ──────────────────────────────────────────────────────────────────────────────
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 # Build toolchain for native deps (sharp, swc, esbuild, etc.). Most ship
 # prebuilt binaries, but keep these so node-gyp fallbacks don't break the build.
