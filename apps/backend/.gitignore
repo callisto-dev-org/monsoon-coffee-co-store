@@ -8,7 +8,6 @@ yarn-error.log
 .idea
 
 coverage
-
 !src/**
 
 ./tsconfig.tsbuildinfo
@@ -24,3 +23,4 @@ build
 !.yarn/versions
 
 .medusa
+static/*

@@ -39,6 +39,10 @@ yarn-error.log*
 **/.env.test.local
 **/.env.production.local
 
+# Deployment env files (real values live only on the VPS; keep .example)
+/env/*.env
+!/env/*.env.example
+
 # Turbo
 .turbo
 
