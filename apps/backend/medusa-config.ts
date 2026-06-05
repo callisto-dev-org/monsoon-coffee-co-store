@@ -68,6 +68,28 @@ module.exports = defineConfig({
     },
   },
   modules: [
+    {
+      // Without this, Medusa registers the local file provider with its default
+      // backend_url of http://localhost:9000, so uploaded product images are
+      // stored/served as http://localhost:9000/static/... — which the public
+      // storefront can't reach (the Next image optimizer fetches its own
+      // container, and browsers block public->localhost requests). Point it at
+      // the real public API origin so image URLs resolve in production.
+      resolve: "@medusajs/medusa/file",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/medusa/file-local",
+            id: "local",
+            options: {
+              backend_url: `${
+                process.env.BACKEND_PUBLIC_URL ?? "http://localhost:9000"
+              }/static`,
+            },
+          },
+        ],
+      },
+    },
     { resolve: "./src/modules/brew" },
     { resolve: "./src/modules/review" },
     { resolve: "./src/modules/coffee-profile" },

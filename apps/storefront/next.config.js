@@ -43,6 +43,7 @@ const nextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       { protocol: "http", hostname: "localhost" },
+      { protocol: "https", hostname: "api.monsooncoffee.co" },
       { protocol: "https", hostname: "*.s3.*.amazonaws.com" },
       { protocol: "https", hostname: "*.s3.amazonaws.com" },
       ...(S3_HOSTNAME && S3_PATHNAME
