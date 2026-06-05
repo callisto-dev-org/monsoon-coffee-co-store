@@ -10,7 +10,9 @@ export default function Hero() {
     <section className="relative w-full overflow-hidden border-b border-ink px-5 py-14 sm:px-10 sm:py-20 lg:py-28">
       <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center gap-5 sm:gap-8">
         <span className="text-center font-family-heading text-[11px] font-semibold uppercase tracking-[0.18em] text-accent sm:text-sm lg:text-lg">
-          EST. 2025 <span className="font-semibold">·</span> Small Batch Roasting
+          EST. 2026 <span className="font-semibold">·</span> Small Batch
+          Roasting <span className="font-semibold">·</span> A Pluvio Coffee
+          Works Brand
         </span>
         <span className="flex flex-col leading-[0.9]">
           <span className="text-center font-family-heading text-[clamp(2.75rem,16vw,8rem)] font-bold uppercase tracking-wide text-ink">

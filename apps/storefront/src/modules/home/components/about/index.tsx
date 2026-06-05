@@ -14,7 +14,7 @@ export default function AboutSection() {
           <span className="font-family-heading text-xs font-semibold uppercase tracking-[0.18em] text-accent sm:text-base lg:text-lg">
             ORIGIN & PHILOSOPHY
           </span>
-          <span className="font-family-heading text-[clamp(2.5rem,12vw,4rem)] font-extrabold leading-[0.9] text-surface sm:text-6xl lg:text-7xl xl:text-8xl">
+          <span className="font-family-heading text-[clamp(1.875rem,8vw,2.75rem)] font-extrabold leading-[0.9] text-surface sm:text-4xl lg:text-5xl xl:text-6xl">
             METICULOUSLY <br /> SOURCED.
           </span>
           <div className="py-1 font-family-base text-base font-light text-surface/80 sm:py-4 sm:text-xl lg:text-xl xl:text-2xl">
@@ -114,6 +114,15 @@ export default function AboutSection() {
             All our coffees are roasted on a state of the art Kaleido M10S
             Carbon Fiber IR roaster. This gives us immense control over the
             roast profile and ensures phenomenal batch-to-batch consistency.
+          </span>
+          <span className="font-family-heading text-xs font-semibold uppercase tracking-[0.22em] text-[var(--mc-secondary)] sm:text-sm">
+            Operated by{" "}
+            <LocalizedClientLink
+              href="/about"
+              className="text-accent underline-offset-4 transition-colors hover:underline"
+            >
+              Pluvio Coffee Works
+            </LocalizedClientLink>
           </span>
           <LocalizedClientLink
             href="/about"

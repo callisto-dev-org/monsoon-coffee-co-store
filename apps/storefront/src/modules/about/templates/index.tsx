@@ -37,12 +37,12 @@ export default function AboutTemplate() {
             Our Story
           </span>
           <h1 className="text-[clamp(2.75rem,12vw,7rem)] font-extrabold uppercase leading-[0.88]">
-            Coffee, <br /> Sourced By Storm.
+            Coffee, <br /> Roasted With Intent.
           </h1>
           <p className="max-w-2xl font-family-base text-lg font-light text-surface/80 sm:text-xl lg:text-2xl">
             Monsoon Coffee Co. is a small-batch roastery built on a single
-            conviction: extraordinary coffee comes from chasing the erratic and
-            the bold — not chasing convenience.
+            conviction: extraordinary coffee comes from obsessing over every
+            variable — not chasing convenience.
           </p>
         </div>
       </section>

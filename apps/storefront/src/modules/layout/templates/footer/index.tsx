@@ -17,6 +17,7 @@ const LEGAL_LINKS = [
   { label: "Terms of Service", href: "/terms-of-service" },
   { label: "Terms of Use", href: "/terms-of-use" },
   { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Shipping Policy", href: "/shipping-policy" },
   { label: "Refund Policy", href: "/refund-policy" },
 ]
 
@@ -84,9 +85,19 @@ export default function Footer() {
               Monsoon <br /> Coffee Co.
             </LocalizedClientLink>
             <p className="max-w-xs font-family-base text-sm font-light leading-relaxed text-surface/65">
-              Small-batch coffee, sourced by storm — roasted to order and
-              shipped within 48 hours.
+              Small-batch coffee, roasted with intent — dispatched within 48
+              hours of the roast.
             </p>
+            <span className="font-family-heading text-[11px] font-semibold uppercase tracking-[0.22em] text-surface/55">
+              A{" "}
+              <LocalizedClientLink
+                href="/about"
+                className="text-accent transition-colors hover:text-surface"
+              >
+                Pluvio Coffee Works
+              </LocalizedClientLink>{" "}
+              brand
+            </span>
             <div className="mt-1 flex flex-wrap gap-3">
               {SOCIALS.map(({ label, href, Icon }) => (
                 <a
@@ -114,9 +125,12 @@ export default function Footer() {
       <div className="border-t border-surface/15">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-6 py-6 text-xs uppercase tracking-[0.12em] text-surface/60 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12">
           <span>
-            © {new Date().getFullYear()} Monsoon Coffee Co. All rights reserved.
+            © {new Date().getFullYear()} Pluvio Coffee Works · Monsoon Coffee
+            Co. All rights reserved.
           </span>
-          <span className="text-surface/45">Roasted in small batches.</span>
+          <span className="text-surface/45">
+            Roasted in small batches at the Pluvio roastery.
+          </span>
         </div>
       </div>
     </footer>
