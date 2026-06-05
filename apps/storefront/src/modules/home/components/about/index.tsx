@@ -115,15 +115,6 @@ export default function AboutSection() {
             Carbon Fiber IR roaster. This gives us immense control over the
             roast profile and ensures phenomenal batch-to-batch consistency.
           </span>
-          <span className="font-family-heading text-xs font-semibold uppercase tracking-[0.22em] text-[var(--mc-secondary)] sm:text-sm">
-            Operated by{" "}
-            <LocalizedClientLink
-              href="/about"
-              className="text-accent underline-offset-4 transition-colors hover:underline"
-            >
-              Pluvio Coffee Works
-            </LocalizedClientLink>
-          </span>
           <LocalizedClientLink
             href="/about"
             className="group relative flex w-fit cursor-pointer items-center gap-2 font-family-heading text-base font-semibold uppercase text-ink sm:text-xl lg:text-2xl"
