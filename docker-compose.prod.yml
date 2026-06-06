@@ -44,8 +44,10 @@ services:
       # Entrypoint copies ../../.env -> .env.production, so the file must exist
       # at apps/backend/.env inside the container.
       - ./env/backend.env:/app/apps/backend/.env:ro
-      # Persist Medusa local file uploads (apps/backend/static).
-      - backend_uploads:/app/apps/backend/static
+      # Persist Medusa local file uploads. `medusa start` runs from
+      # .medusa/server (see docker-entrypoint.sh), so the file provider's
+      # default `static` dir resolves there — mount the volume at that path.
+      - backend_uploads:/app/apps/backend/.medusa/server/static
     depends_on:
       postgres:
         condition: service_healthy
