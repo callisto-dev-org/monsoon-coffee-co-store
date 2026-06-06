@@ -68,7 +68,6 @@ const OrderSummary = ({ order }: OrderSummaryProps) => {
             accent
           />
         )}
-        <Row label="Shipping" value={fmt(order.shipping_total)} />
         <Row label="Taxes" value={fmt(order.tax_total)} />
       </div>
 

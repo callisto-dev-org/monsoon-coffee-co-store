@@ -42,6 +42,7 @@ function Field({
   inputMode,
   className = "",
   testId,
+  numericOnly,
 }: {
   name: string
   label: string
@@ -52,6 +53,7 @@ function Field({
   inputMode?: "text" | "numeric" | "email" | "tel"
   className?: string
   testId?: string
+  numericOnly?: boolean
 }) {
   return (
     <label className={`grid gap-2 ${className}`}>
@@ -67,6 +69,14 @@ function Field({
         inputMode={inputMode}
         defaultValue={defaultValue}
         data-testid={testId}
+        onInput={
+          numericOnly
+            ? (e) => {
+                const t = e.currentTarget
+                t.value = t.value.replace(/\D/g, "")
+              }
+            : undefined
+        }
         className="h-12 border-2 border-ink bg-surface px-4 font-family-base text-ink placeholder:text-ink/30 focus:outline-none focus:ring-0"
       />
     </label>
@@ -369,9 +379,11 @@ const EditAddress: React.FC<EditAddressProps> = ({
                         name="postal_code"
                         label="Postal code"
                         required
+                        inputMode="numeric"
                         autoComplete="postal-code"
                         defaultValue={address.postal_code || undefined}
                         testId="postal-code-input"
+                        numericOnly
                       />
                       <Field
                         name="city"

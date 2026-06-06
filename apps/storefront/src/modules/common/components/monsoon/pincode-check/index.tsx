@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { sdk } from "@lib/config"
-import { convertToLocale } from "@lib/util/money"
 
 export type PincodeEstimate = {
   serviceable: boolean
@@ -180,23 +179,6 @@ export default function MonsoonPincodeCheck({
               <p className="font-bold uppercase tracking-[0.14em] text-ink">
                 Delivers to {result.pincode || pincode} ✓
               </p>
-              {typeof result.amount === "number" && (
-                <p className="mt-1 text-ink/80">
-                  Estimated shipping:{" "}
-                  <span className="font-black">
-                    {convertToLocale({
-                      amount: result.amount,
-                      currency_code: result.currency || currency,
-                    })}
-                  </span>
-                  {result.courier_name ? (
-                    <span className="text-ink/60">
-                      {" "}
-                      · {result.courier_name}
-                    </span>
-                  ) : null}
-                </p>
-              )}
               {result.expected_delivery_days && (
                 <p className="mt-1 text-ink/70">
                   Expected in {String(result.expected_delivery_days)}{" "}

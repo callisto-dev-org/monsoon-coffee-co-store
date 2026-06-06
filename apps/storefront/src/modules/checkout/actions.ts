@@ -57,6 +57,9 @@ function readAddressFields(formData: FormData): {
   if (values.email && !/^\S+@\S+\.\S+$/.test(values.email)) {
     errors.email = "Enter a valid email"
   }
+  if (values.postal_code && !/^\d+$/.test(values.postal_code)) {
+    errors.postal_code = "Numbers only"
+  }
   if (values.phone && !/^[0-9+\-\s()]{6,}$/.test(values.phone)) {
     errors.phone = "Enter a valid phone"
   }

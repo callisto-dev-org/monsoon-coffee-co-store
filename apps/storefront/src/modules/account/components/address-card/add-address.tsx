@@ -42,6 +42,7 @@ function Field({
   inputMode,
   className = "",
   testId,
+  numericOnly,
 }: {
   name: string
   label: string
@@ -51,6 +52,7 @@ function Field({
   inputMode?: "text" | "numeric" | "email" | "tel"
   className?: string
   testId?: string
+  numericOnly?: boolean
 }) {
   return (
     <label className={`grid gap-2 ${className}`}>
@@ -65,6 +67,14 @@ function Field({
         autoComplete={autoComplete}
         inputMode={inputMode}
         data-testid={testId}
+        onInput={
+          numericOnly
+            ? (e) => {
+                const t = e.currentTarget
+                t.value = t.value.replace(/\D/g, "")
+              }
+            : undefined
+        }
         className="h-12 border-2 border-ink bg-surface px-4 font-family-base text-ink placeholder:text-ink/30 focus:bg-surface focus:outline-none focus:ring-0"
       />
     </label>
@@ -296,8 +306,10 @@ const AddAddress = ({ region, addresses, trigger }: AddAddressProps) => {
                         name="postal_code"
                         label="Postal code"
                         required
+                        inputMode="numeric"
                         autoComplete="postal-code"
                         testId="postal-code-input"
+                        numericOnly
                       />
                       <Field
                         name="city"

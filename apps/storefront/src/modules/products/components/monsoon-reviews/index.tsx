@@ -79,7 +79,7 @@ export default function MonsoonReviews({
   const imagePool = productImages.length ? productImages : [PLACEHOLDER]
 
   return (
-    <section className="w-full border-y-4 py-40 border-ink font-family-base">
+    <section className="w-full border-y-4 py-16 sm:py-28 lg:py-40 border-ink font-family-base">
       <div className="mx-auto grid max-w-7xl gap-12 px-6 py-16 lg:grid-cols-3 lg:gap-16 lg:px-12 lg:py-20">
         {/* ───────── Left column: ledger ───────── */}
         <aside className="flex flex-col gap-6">
@@ -298,7 +298,7 @@ function ReviewRow({
   const extraCount = Math.max(0, reviewImages.length - 1)
 
   const ImageBlock = (
-    <div className="relative aspect-square w-32 shrink-0 overflow-hidden bg-ink/5 sm:w-40 lg:w-44">
+    <div className="relative aspect-square w-24 shrink-0 overflow-hidden bg-ink/5 sm:w-36 lg:w-44">
       <Image
         src={primaryImage}
         alt=""
@@ -316,8 +316,8 @@ function ReviewRow({
 
   const Body = (
     <div className="flex-1 min-w-0">
-      <div className="flex items-start justify-between gap-4">
-        <h3 className="text-base font-black uppercase tracking-tight text-ink lg:text-lg">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
+        <h3 className="min-w-0 break-words text-base font-black uppercase tracking-tight text-ink lg:text-lg">
           {review.title || "Untitled note"}
         </h3>
         {date && (
@@ -332,7 +332,7 @@ function ReviewRow({
       </div>
 
       <blockquote className="mt-3 border-l-2 border-mc-primary pl-6">
-        <p className="line-clamp-4 text-lg tracking-wide leading-relaxed text-accent">
+        <p className="line-clamp-4 break-words text-lg tracking-wide leading-relaxed text-accent">
           {review.body}
         </p>
       </blockquote>
@@ -422,7 +422,7 @@ function ReviewDetail({
         )}
 
         <blockquote className="mt-5 border-l-2 border-mc-primary pl-6">
-          <p className="whitespace-pre-line text-lg leading-relaxed tracking-wide text-accent">
+          <p className="whitespace-pre-line break-words text-lg leading-relaxed tracking-wide text-accent">
             {review.body}
           </p>
         </blockquote>
@@ -527,7 +527,7 @@ function ReviewShell({
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-accent">
               {kicker}
             </p>
-            <h2 className="mt-1 text-3xl font-black uppercase tracking-tight text-ink lg:text-4xl">
+            <h2 className="mt-1 break-words text-3xl font-black uppercase tracking-tight text-ink lg:text-4xl">
               {title}
             </h2>
           </div>

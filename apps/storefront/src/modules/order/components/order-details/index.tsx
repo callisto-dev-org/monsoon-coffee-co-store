@@ -37,7 +37,7 @@ const OrderDetails = ({ order, showStatus }: OrderDetailsProps) => {
   return (
     <div className="flex flex-col gap-6">
       <p className="font-family-base text-base text-ink/75">
-        We have sent the order confirmation details to{" "}
+        Your order is confirmed under{" "}
         <span
           className="font-family-heading font-bold uppercase tracking-[0.04em] text-accent"
           data-testid="order-email"

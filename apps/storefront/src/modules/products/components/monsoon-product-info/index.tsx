@@ -245,13 +245,13 @@ export default function MonsoonProductInfo({
 
   return (
     <div className="max-w-7xl w-full mx-auto font-family-heading grid grid-cols-1 lg:grid-cols-12 py-12 lg:py-20 gap-8 lg:gap-12 px-6">
-      <div className="flex flex-row lg:flex-col col-span-12 lg:col-span-1 gap-4 order-2 lg:order-1">
+      <div className="flex flex-row lg:flex-col col-span-1 lg:col-span-1 gap-3 sm:gap-4 order-2 lg:order-1 overflow-x-auto scrollbar-hidden lg:overflow-visible">
         {images.slice(0, 6).map((img, idx) => (
           <button
             key={img.id ?? idx}
             type="button"
             onClick={() => setActiveImageIdx(idx)}
-            className={`relative w-20 aspect-square shrink-0 border-2 transition-opacity ${
+            className={`relative w-16 sm:w-20 aspect-square shrink-0 border-2 transition-opacity ${
               idx === activeImageIdx
                 ? "border-ink opacity-100 border-4"
                 : "border-accent opacity-55 hover:opacity-100"
@@ -268,7 +268,7 @@ export default function MonsoonProductInfo({
       </div>
       <HighlightCard
         size="lg"
-        className="w-full h-fit col-span-12 lg:col-span-5 order-1 lg:order-2"
+        className="w-full h-fit col-span-1 lg:col-span-5 order-1 lg:order-2"
       >
         <div className="relative w-full aspect-square">
           <Image
@@ -280,7 +280,7 @@ export default function MonsoonProductInfo({
           />
         </div>
       </HighlightCard>
-      <div className="col-span-12 lg:col-span-6 flex flex-col gap-4 order-3">
+      <div className="col-span-1 lg:col-span-6 flex flex-col gap-4 order-3">
         {heroBadges.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {heroBadges.map((b, i) => (
@@ -297,7 +297,7 @@ export default function MonsoonProductInfo({
             ))}
           </div>
         )}
-        <span className="text-4xl sm:text-5xl lg:text-6xl tracking-tighter font-bold uppercase">
+        <span className="text-4xl sm:text-5xl lg:text-6xl tracking-tighter font-bold uppercase break-words">
           {product.title}
         </span>
         <span className="flex items-end gap-4">

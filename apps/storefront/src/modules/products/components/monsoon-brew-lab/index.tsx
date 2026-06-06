@@ -168,7 +168,7 @@ function BrewLabModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-ink/55 px-4 pb-8 pt-24 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-ink/55 px-2 pb-6 pt-20 backdrop-blur-sm sm:px-4 sm:pb-8 sm:pt-24"
       onClick={onClose}
     >
       <button
@@ -188,10 +188,10 @@ function BrewLabModal({
             <p className="text-2xl font-semibold tracking-tight text-accent">
               THE LAB
             </p>
-            <h2 className="mt-4 text-5xl lg:text-7xl font-black leading-[0.9] tracking-tight text-ink">
+            <h2 className="mt-4 text-4xl sm:text-5xl lg:text-7xl font-black leading-[0.9] tracking-tight text-ink">
               NO SUGGESTIONS YET
             </h2>
-            <p className="mt-6 text-base lg:text-lg leading-relaxed text-ink/55 uppercase tracking-widest">
+            <p className="mt-6 text-sm sm:text-base lg:text-lg leading-relaxed text-ink/55 uppercase tracking-widest">
               Our roasters haven't dialled in a brew profile for this coffee
               yet. Check back soon — extraction data, timing charts and step-by-
               step protocols will appear here.
@@ -200,137 +200,182 @@ function BrewLabModal({
         </section>
       ) : (
       <section
-        className="grid h-[calc(100vh-7rem)] w-full max-w-7xl min-h-0 grid-cols-[372px_minmax(0,1fr)] overflow-hidden border-4 border-ink bg-surface font-family-heading shadow-[12px_12px_0_var(--mc-ink)] max-[1100px]:grid-cols-1"
+        className="relative flex h-[calc(100vh-7rem)] min-h-0 w-full max-w-7xl flex-col overflow-hidden border-4 border-ink bg-surface font-family-heading shadow-[6px_6px_0_var(--mc-ink)] sm:shadow-[12px_12px_0_var(--mc-ink)] min-[1101px]:grid min-[1101px]:grid-cols-[372px_minmax(0,1fr)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <ScrollablePanel className="border-r-4 border-ink max-[1100px]:border-r-0 max-[1100px]:border-b-4">
-          <div className="border-b-4 border-ink px-8 py-8">
-            <p className="text-4xl font-black tracking-tight text-ink md:text-5xl">
-              THE LAB
-            </p>
-            <p className="mt-3 text-2xl font-semibold tracking-tight text-accent">
-              EXTRACTION METHODS
-            </p>
+        {/* ── Sidebar (desktop ≥1101px) ── */}
+        <aside className="hidden min-h-0 border-r-4 border-ink min-[1101px]:flex min-[1101px]:flex-col">
+          <ScrollablePanel className="flex-1">
+            <div className="border-b-4 border-ink px-8 py-8">
+              <p className="text-4xl font-black tracking-tight text-ink md:text-5xl">
+                THE LAB
+              </p>
+              <p className="mt-3 text-2xl font-semibold tracking-tight text-accent">
+                EXTRACTION METHODS
+              </p>
+            </div>
+            {protocols.map((protocol, index) => {
+              const isActive = activeProtocol.id === protocol.id
+              return (
+                <button
+                  key={protocol.id}
+                  type="button"
+                  onClick={() => setActiveProtocolId(protocol.id)}
+                  className={`${
+                    isActive
+                      ? "bg-ink text-surface"
+                      : "border-b-4 border-ink bg-surface text-ink hover:bg-[var(--mc-primary)]/20"
+                  } w-full px-8 py-9 text-left transition-colors ${
+                    index === protocols.length - 1 ? "border-b-0" : ""
+                  }`}
+                >
+                  <p className="text-4xl font-black tracking-tight">
+                    {protocol.id}
+                  </p>
+                  <p
+                    className={`text-lg tracking-[0.16em] ${
+                      isActive ? "text-surface/55" : "text-ink/45"
+                    }`}
+                  >
+                    {protocol.method}
+                  </p>
+                  <p
+                    className={`mt-4 max-w-xs text-sm leading-relaxed tracking-wide ${
+                      isActive ? "text-surface/70" : "text-ink/65"
+                    }`}
+                  >
+                    {protocol.summary}
+                  </p>
+                </button>
+              )
+            })}
+          </ScrollablePanel>
+        </aside>
+
+        {/* ── Selector (mobile <1101px): compact header + swipeable tabs ── */}
+        <div className="flex shrink-0 flex-col border-b-4 border-ink min-[1101px]:hidden">
+          <div className="flex items-end justify-between gap-3 px-5 py-4">
+            <div className="min-w-0">
+              <p className="text-2xl font-black tracking-tight text-ink">
+                THE LAB
+              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
+                Extraction Methods
+              </p>
+            </div>
+            <span className="shrink-0 font-mono text-xs font-bold uppercase tracking-[0.18em] text-ink/45">
+              {protocols.findIndex((p) => p.id === activeProtocol.id) + 1}/
+              {protocols.length}
+            </span>
           </div>
-          {protocols.map((protocol, index) => {
-            const isActive = activeProtocol.id === protocol.id
-            return (
-              <button
-                key={protocol.id}
-                type="button"
-                onClick={() => setActiveProtocolId(protocol.id)}
-                className={`${
-                  isActive
-                    ? "bg-ink text-surface"
-                    : "border-b-4 border-ink bg-surface text-ink hover:bg-[var(--mc-primary)]/20"
-                } w-full px-8 py-9 text-left transition-colors ${
-                  index === protocols.length - 1 ? "border-b-0" : ""
-                }`}
-              >
-                <p className="text-4xl font-black tracking-tight">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hidden border-t-2 border-ink/15 px-4 pb-4 pt-3">
+            {protocols.map((protocol) => {
+              const isActive = activeProtocol.id === protocol.id
+              return (
+                <button
+                  key={protocol.id}
+                  type="button"
+                  onClick={() => setActiveProtocolId(protocol.id)}
+                  aria-pressed={isActive}
+                  className={`shrink-0 whitespace-nowrap border-2 border-ink px-4 py-2 text-sm font-black uppercase tracking-tight transition-colors ${
+                    isActive ? "bg-ink text-surface" : "bg-surface text-ink"
+                  }`}
+                >
                   {protocol.id}
-                </p>
-                <p
-                  className={`text-lg tracking-[0.16em] ${
-                    isActive ? "text-surface/55" : "text-ink/45"
-                  }`}
-                >
-                  {protocol.method}
-                </p>
-                <p
-                  className={`mt-4 max-w-xs text-sm leading-relaxed tracking-wide ${
-                    isActive ? "text-surface/70" : "text-ink/65"
-                  }`}
-                >
-                  {protocol.summary}
-                </p>
-              </button>
-            )
-          })}
-        </ScrollablePanel>
-
-        <ScrollablePanel resetKey={activeProtocol.id} className="min-h-0">
-          <div className="flex min-h-0 flex-col">
-            <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(420px,0.85fr)] border-b-4 border-ink max-[1100px]:grid-cols-1">
-              <div className="border-r-4 border-ink px-10 py-12 max-[1100px]:border-r-0 max-[1100px]:border-b-4">
-                <p className="text-xl font-semibold tracking-tight text-ink/80">
-                  {activeProtocol.id} PROTOCOL
-                </p>
-                <h2 className="mt-5 max-w-lg text-6xl lg:text-7xl font-black leading-[0.9] tracking-tight text-ink">
-                  {activeProtocol.title}
-                </h2>
-                <p className="mt-6 max-w-xl text-lg leading-relaxed tracking-wide text-ink/45 uppercase">
-                  {activeProtocol.summary}
-                </p>
-              </div>
-              <div className="relative overflow-hidden bg-[#eef0ef] min-h-[280px]">
-                <Image
-                  src={activeProtocol.image || "/monsoon/images/Product.png"}
-                  alt={`${activeProtocol.id} brew kettle`}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </div>
-
-            {activeProtocol.stats.length > 0 && (
-              <div className="grid grid-cols-5 border-b-4 border-ink bg-surface max-[780px]:grid-cols-2">
-                {activeProtocol.stats.map((stat) => (
-                  <div
-                    key={stat.label}
-                    className="flex flex-col items-center justify-center border-r-4 border-ink px-4 py-8 text-center last:border-r-0 max-[780px]:border-r-0 max-[780px]:border-t-4"
-                  >
-                    <span className="text-sm font-medium uppercase tracking-widest text-ink/60">
-                      {stat.label}
-                    </span>
-                    <span
-                      className={`mt-3 text-4xl font-black tracking-tight ${
-                        stat.accent ? "text-accent" : "text-ink"
-                      }`}
-                    >
-                      {stat.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex flex-col">
-              {activeProtocol.methods.length === 0 ? (
-                <p className="px-10 py-12 text-base text-ink/55">
-                  Steps for this protocol haven't been published yet.
-                </p>
-              ) : (
-                activeProtocol.methods.map((method, index) => (
-                  <div
-                    key={`${activeProtocol.id}-${method.name}-${index}`}
-                    className="flex items-start gap-8 border-t-4 border-ink px-10 py-10 first:border-t-0"
-                  >
-                    <p
-                      className={`grid h-20 w-20 shrink-0 place-items-center border-4 border-ink text-4xl font-black leading-none ${
-                        index % 2 === 0
-                          ? "bg-ink text-surface"
-                          : "bg-surface text-ink"
-                      }`}
-                    >
-                      {index + 1}
-                    </p>
-                    <div className="max-w-4xl">
-                      <h3 className="text-3xl lg:text-4xl font-black tracking-tight text-ink">
-                        {method.name}
-                      </h3>
-                      <p className="mt-4 text-base lg:text-lg leading-relaxed text-ink/80">
-                        {method.description}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+                </button>
+              )
+            })}
           </div>
+        </div>
+
+        {/* ── Recipe detail (shared) ── */}
+        <ScrollablePanel resetKey={activeProtocol.id} className="min-h-0 flex-1">
+          <ProtocolDetail protocol={activeProtocol} />
         </ScrollablePanel>
       </section>
       )}
+    </div>
+  )
+}
+
+function ProtocolDetail({ protocol }: { protocol: BrewProtocol }) {
+  return (
+    <div className="flex min-h-0 flex-col">
+      {/* Header: image on top for mobile, beside the title on desktop */}
+      <div className="flex flex-col-reverse border-b-4 border-ink min-[1101px]:grid min-[1101px]:grid-cols-[minmax(0,1.15fr)_minmax(420px,0.85fr)]">
+        <div className="px-6 py-8 sm:px-10 sm:py-12 min-[1101px]:border-r-4 min-[1101px]:border-ink">
+          <p className="text-lg font-semibold tracking-tight text-ink/80 sm:text-xl">
+            {protocol.id} PROTOCOL
+          </p>
+          <h2 className="mt-5 max-w-lg break-words text-4xl font-black leading-[0.9] tracking-tight text-ink sm:text-5xl lg:text-7xl">
+            {protocol.title}
+          </h2>
+          <p className="mt-6 max-w-xl text-base uppercase leading-relaxed tracking-wide text-ink/45 sm:text-lg">
+            {protocol.summary}
+          </p>
+        </div>
+        <div className="relative min-h-[200px] overflow-hidden border-b-4 border-ink bg-[#eef0ef] sm:min-h-[280px] min-[1101px]:border-b-0">
+          <Image
+            src={protocol.image || "/monsoon/images/Product.png"}
+            alt={`${protocol.id} brew kettle`}
+            fill
+            className="object-cover"
+          />
+        </div>
+      </div>
+
+      {protocol.stats.length > 0 && (
+        <div className="grid grid-cols-5 border-b-4 border-ink bg-surface max-[780px]:grid-cols-2">
+          {protocol.stats.map((stat) => (
+            <div
+              key={stat.label}
+              className="flex flex-col items-center justify-center border-r-4 border-ink px-4 py-6 text-center last:border-r-0 sm:py-8 max-[780px]:border-r-0 max-[780px]:border-t-4"
+            >
+              <span className="text-xs font-medium uppercase tracking-widest text-ink/60 sm:text-sm">
+                {stat.label}
+              </span>
+              <span
+                className={`mt-3 text-3xl font-black tracking-tight sm:text-4xl ${
+                  stat.accent ? "text-accent" : "text-ink"
+                }`}
+              >
+                {stat.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex flex-col">
+        {protocol.methods.length === 0 ? (
+          <p className="px-6 py-10 text-base text-ink/55 sm:px-10 sm:py-12">
+            Steps for this protocol haven't been published yet.
+          </p>
+        ) : (
+          protocol.methods.map((method, index) => (
+            <div
+              key={`${protocol.id}-${method.name}-${index}`}
+              className="flex items-start gap-4 border-t-4 border-ink px-6 py-8 first:border-t-0 sm:gap-8 sm:px-10 sm:py-10"
+            >
+              <p
+                className={`grid h-12 w-12 shrink-0 place-items-center border-4 border-ink text-xl font-black leading-none sm:h-20 sm:w-20 sm:text-4xl ${
+                  index % 2 === 0 ? "bg-ink text-surface" : "bg-surface text-ink"
+                }`}
+              >
+                {index + 1}
+              </p>
+              <div className="min-w-0 max-w-4xl">
+                <h3 className="break-words text-2xl font-black tracking-tight text-ink sm:text-3xl lg:text-4xl">
+                  {method.name}
+                </h3>
+                <p className="mt-3 text-base leading-relaxed text-ink/80 sm:mt-4 lg:text-lg">
+                  {method.description}
+                </p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   )
 }
@@ -349,8 +394,8 @@ export default function MonsoonBrewLab({ brews = [] }: { brews?: BrewRecipe[] })
     <>
       <section className="px-6 lg:px-12 py-16 lg:h-screen flex items-center justify-center relative w-full font-family-heading">
         <div className="bg-ink max-w-7xl w-full lg:h-3/4 gap-4 flex flex-col lg:flex-row">
-          <div className="w-full lg:w-3/4 gap-4 p-8 lg:p-12 h-full flex flex-col items-start justify-center">
-            <span className="text-5xl lg:text-8xl font-black text-surface tracking-wide">
+          <div className="w-full lg:w-3/4 gap-4 p-6 sm:p-8 lg:p-12 h-full flex flex-col items-start justify-center">
+            <span className="text-5xl sm:text-6xl lg:text-8xl font-black text-surface tracking-wide">
               BREW <br /> LAB
             </span>
             <span className="text-base lg:text-xl text-surface/75 w-full leading-relaxed">
@@ -360,7 +405,7 @@ export default function MonsoonBrewLab({ brews = [] }: { brews?: BrewRecipe[] })
             </span>
             <SolidButton
               color="accent"
-              className="text-surface font-bold px-8 text-2xl lg:text-3xl py-4 lg:py-6"
+              className="text-surface font-bold px-6 sm:px-8 text-xl sm:text-2xl lg:text-3xl py-3 sm:py-4 lg:py-6"
               onClick={() => setIsOpen(true)}
             >
               OPEN BREW LAB

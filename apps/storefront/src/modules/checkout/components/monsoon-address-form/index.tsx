@@ -317,10 +317,12 @@ export default function MonsoonAddressForm({
           <Field
             name="postal_code"
             label="Postal Code"
+            inputMode="numeric"
             autoComplete="postal-code"
             defaultValue={state.values?.postal_code ?? seed?.postal_code ?? ""}
             error={state.errors.postal_code}
             required
+            numericOnly
           />
           <label className="grid gap-2">
             <span className="font-family-heading text-xs font-bold uppercase tracking-widest text-ink/70">
