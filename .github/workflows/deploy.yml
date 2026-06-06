@@ -96,6 +96,20 @@ jobs:
     needs: [build-backend, build-storefront]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
+      # Infra files (compose + nginx) live on the VPS but are version-controlled
+      # here. Sync them before deploy so changes like volume mounts actually land
+      # on the server — `compose pull` only updates images, never this file.
+      - name: Sync infra files to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "docker-compose.prod.yml,nginx/conf.d/*"
+          target: "/opt/monsoon"
+
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1
         with:
