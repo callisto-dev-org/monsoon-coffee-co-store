@@ -15,7 +15,7 @@ type Props = {
 
 const PROVIDER_LABELS: Record<string, string> = {
   pp_system_default: "Manual / Cash on Delivery",
-  pp_phonepe_phonepe: "PhonePe — UPI, Cards, Netbanking",
+  pp_razorpay_razorpay: "Razorpay — UPI, Cards, Netbanking",
 }
 
 function labelFor(id: string) {

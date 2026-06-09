@@ -4,7 +4,7 @@ import { useState } from "react"
 import { HttpTypes } from "@medusajs/types"
 
 import { placeOrderAction } from "@modules/checkout/actions"
-import PhonePeButton from "@modules/checkout/components/phonepe-button"
+import RazorpayButton from "@modules/checkout/components/razorpay-button"
 import { CTAButton } from "@modules/common/components/monsoon/buttons"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
@@ -12,19 +12,19 @@ type Props = {
   cart: HttpTypes.StoreCart
   countryCode: string
   totalLabel: string
-  usingPhonePe: boolean
+  usingRazorpay: boolean
 }
 
 /**
  * Final checkout step: an explicit terms agreement the customer must tick
- * before the order can be placed, gating either the PhonePe button or the
+ * before the order can be placed, gating either the Razorpay button or the
  * standard place-order form.
  */
 export default function PlaceOrder({
   cart,
   countryCode,
   totalLabel,
-  usingPhonePe,
+  usingRazorpay,
 }: Props) {
   const [agreed, setAgreed] = useState(false)
 
@@ -56,21 +56,21 @@ export default function PlaceOrder({
     </label>
   )
 
-  if (usingPhonePe) {
+  if (usingRazorpay) {
     return (
       <div className="flex flex-col gap-4">
         <p className="font-family-base text-sm text-ink/65">
-          You&apos;ll complete payment in PhonePe&apos;s secure checkout window.
+          You&apos;ll complete payment in Razorpay&apos;s secure checkout window.
         </p>
         {agreement}
-        <PhonePeButton
+        <RazorpayButton
           cart={cart}
           countryCode={countryCode}
           disabled={!agreed}
           className="w-full border-2 border-ink bg-ink px-4 py-3 font-family-heading text-sm font-bold uppercase tracking-[0.12em] text-surface hover:bg-surface hover:text-ink disabled:cursor-not-allowed disabled:opacity-60 sm:py-4 sm:text-base sm:tracking-[0.16em] lg:text-lg"
         >
-          {`Pay with PhonePe — ${totalLabel}`}
-        </PhonePeButton>
+          {`Pay with Razorpay — ${totalLabel}`}
+        </RazorpayButton>
       </div>
     )
   }

@@ -200,7 +200,7 @@ export async function placeOrderAction(formData: FormData) {
   }
 }
 
-export async function placePhonePeOrder(input: {
+export async function placeRazorpayOrder(input: {
   cartId: string
   countryCode: string
 }) {

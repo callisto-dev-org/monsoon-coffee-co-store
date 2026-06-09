@@ -2,9 +2,9 @@ import { BigNumber, MathBN } from "@medusajs/framework/utils"
 import { BigNumberInput } from "@medusajs/framework/types"
 
 /**
- * PhonePe expects amounts in paise (smallest INR unit). The PG v2 APIs are
- * INR-only at the time of writing, but we keep a tiny conversion helper so
- * the rest of the module mirrors the Stripe shape.
+ * Razorpay expects amounts in the smallest currency unit (paise for INR). The
+ * account is INR-only here, but we keep a tiny conversion helper so the rest of
+ * the module mirrors the Stripe shape.
  */
 const CURRENCY_MULTIPLIERS: Record<number, string[]> = {
   0: [

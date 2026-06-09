@@ -6,8 +6,8 @@ export const paymentInfoMap: Record<
   string,
   { title: string; icon: React.JSX.Element }
 > = {
-  pp_phonepe_phonepe: {
-    title: "PhonePe",
+  pp_razorpay_razorpay: {
+    title: "Razorpay",
     icon: <CreditCard />,
   },
   pp_system_default: {
@@ -16,8 +16,8 @@ export const paymentInfoMap: Record<
   },
 }
 
-export const isPhonePe = (providerId?: string) => {
-  return providerId?.startsWith("pp_phonepe")
+export const isRazorpay = (providerId?: string) => {
+  return providerId?.startsWith("pp_razorpay")
 }
 
 export const isManual = (providerId?: string) => {

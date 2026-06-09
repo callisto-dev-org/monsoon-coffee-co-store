@@ -3,7 +3,7 @@ import { HttpTypes } from "@medusajs/types"
 import { convertToLocale } from "@lib/util/money"
 import MonsoonPaymentPicker from "@modules/checkout/components/monsoon-payment-picker"
 import PlaceOrder from "@modules/checkout/components/place-order"
-import { isPhonePe } from "@lib/constants"
+import { isRazorpay } from "@lib/constants"
 import { CheckIcon } from "@modules/common/icons/monsoon/check"
 import { PincodeEstimateProvider } from "@modules/checkout/components/pincode-estimate-context"
 import AddressPincodeCheck from "@modules/checkout/components/address-pincode-check"
@@ -63,7 +63,7 @@ export default async function MonsoonCheckout({
     (s) => s.status === "pending"
   )
   const hasPaymentSession = !!activePaymentSession
-  const usingPhonePe = !!isPhonePe(activePaymentSession?.provider_id)
+  const usingRazorpay = !!isRazorpay(activePaymentSession?.provider_id)
 
   const canPlaceOrder = hasAddress && hasPaymentSession
 
@@ -143,7 +143,7 @@ export default async function MonsoonCheckout({
                   <PlaceOrder
                     cart={cart}
                     countryCode={countryCode}
-                    usingPhonePe={usingPhonePe}
+                    usingRazorpay={usingRazorpay}
                     totalLabel={convertToLocale({
                       amount: cart.total ?? 0,
                       currency_code: currency,

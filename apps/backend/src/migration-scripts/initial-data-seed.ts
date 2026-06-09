@@ -95,7 +95,7 @@ export default async function initial_data_seed({
           countries,
           payment_providers: [
             "pp_system_default",
-            "pp_phonepe_phonepe",
+            "pp_razorpay_razorpay",
           ],
         },
       ],
