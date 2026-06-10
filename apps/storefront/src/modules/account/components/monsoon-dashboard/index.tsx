@@ -3,12 +3,14 @@ import { convertToLocale } from "@lib/util/money"
 import { CTAButton } from "@modules/common/components/monsoon/buttons"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import AddAddress from "@modules/account/components/address-card/add-address"
+import MonsoonAccountSettingsModal from "@modules/account/components/monsoon-account-settings-modal"
 
 type DashboardProps = {
   customer: HttpTypes.StoreCustomer
   orders: HttpTypes.StoreOrder[] | null
   countryCode: string
   region?: HttpTypes.StoreRegion | null
+  hasPassword: boolean
 }
 
 function MemberHero({ customer }: { customer: HttpTypes.StoreCustomer }) {
@@ -49,9 +51,11 @@ function MemberHero({ customer }: { customer: HttpTypes.StoreCustomer }) {
 function ProfilePanel({
   customer,
   region,
+  hasPassword,
 }: {
   customer: HttpTypes.StoreCustomer
   region?: HttpTypes.StoreRegion | null
+  hasPassword: boolean
 }) {
   const defaultShipping = customer.addresses?.find(
     (a) => a.is_default_shipping
@@ -77,12 +81,15 @@ function ProfilePanel({
           <p className="mt-3 break-words font-family-base text-sm text-ink/65 sm:text-base">
             {customer.email}
           </p>
-          <p className="mt-5 font-family-heading text-xs font-bold uppercase tracking-[0.18em] text-ink/45 sm:mt-6 sm:text-sm sm:tracking-widest">
-            Phone
+          <p className="mt-5 font-family-base text-sm text-ink/55 sm:mt-6">
+            Manage your name, password, and sign-in.
           </p>
-          <p className="font-family-base text-sm text-ink/75 sm:text-base">
-            {customer.phone || "—"}
-          </p>
+          <div className="mt-4">
+            <MonsoonAccountSettingsModal
+              customer={customer}
+              hasPassword={hasPassword}
+            />
+          </div>
         </article>
         <article className="flex flex-col border-2 border-ink bg-surface p-5 shadow-[3px_3px_0px_0px_var(--mc-ink)] sm:p-6 sm:shadow-[4px_4px_0px_0px_var(--mc-ink)]">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
@@ -112,6 +119,11 @@ function ProfilePanel({
                   .join(", ")}
               </p>
               <p className="uppercase">{defaultShipping.country_code}</p>
+              {defaultShipping.phone && (
+                <p className="mt-2 font-mono text-sm tabular-nums tracking-[0.04em] text-ink/55">
+                  {defaultShipping.phone}
+                </p>
+              )}
             </div>
           ) : (
             <p className="mt-3 font-family-base text-base text-ink/55">
@@ -371,12 +383,17 @@ export default function MonsoonDashboard({
   orders,
   countryCode,
   region,
+  hasPassword,
 }: DashboardProps) {
   return (
     <main className="w-full overflow-x-clip px-5 pb-20 pt-10 sm:px-8 sm:pt-14 lg:px-10 xl:px-12">
       <MemberHero customer={customer} />
       <section className="mt-10 sm:mt-14">
-        <ProfilePanel customer={customer} region={region} />
+        <ProfilePanel
+          customer={customer}
+          region={region}
+          hasPassword={hasPassword}
+        />
       </section>
       <LatestBulletins orders={orders} />
       <AccountActions countryCode={countryCode} />

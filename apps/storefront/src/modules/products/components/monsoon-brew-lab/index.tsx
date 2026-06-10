@@ -166,24 +166,31 @@ function BrewLabModal({
   const activeProtocol =
     protocols.find((p) => p.id === activeProtocolId) ?? protocols[0]
 
+  // Lives inside the box (top-right corner) so it never floats outside on
+  // mobile. A back button rather than a bare ×.
+  const backButton = (
+    <button
+      type="button"
+      aria-label="Back"
+      onClick={onClose}
+      className="absolute right-3 top-3 z-30 inline-flex items-center gap-1.5 border-2 border-ink bg-surface px-3 py-2 font-family-heading text-xs font-black uppercase tracking-[0.12em] text-ink transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 sm:right-4 sm:top-4 sm:border-4 sm:px-4 sm:py-2.5 sm:text-sm"
+    >
+      <span className="text-base leading-none">←</span>
+      Back
+    </button>
+  )
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-ink/55 px-2 pb-6 pt-20 backdrop-blur-sm sm:px-4 sm:pb-8 sm:pt-24"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-ink/55 p-2 backdrop-blur-sm sm:p-4"
       onClick={onClose}
     >
-      <button
-        type="button"
-        aria-label="Close brew lab modal"
-        onClick={onClose}
-        className="absolute right-6 top-6 grid h-11 w-11 place-items-center border-4 border-ink bg-surface text-2xl font-black text-ink transition-transform hover:-translate-y-0.5 hover:-translate-x-0.5"
-      >
-        ×
-      </button>
       {protocols.length === 0 || !activeProtocol ? (
         <section
-          className="grid h-[calc(100vh-7rem)] w-full max-w-7xl min-h-0 place-items-center overflow-hidden border-4 border-ink bg-surface font-family-heading shadow-[12px_12px_0_var(--mc-ink)]"
+          className="relative grid h-[calc(100dvh-1rem)] w-full max-w-7xl min-h-0 place-items-center overflow-hidden border-4 border-ink bg-surface font-family-heading shadow-[12px_12px_0_var(--mc-ink)] sm:h-[calc(100dvh-2rem)]"
           onClick={(e) => e.stopPropagation()}
         >
+          {backButton}
           <div className="px-8 py-12 text-center max-w-2xl">
             <p className="text-2xl font-semibold tracking-tight text-accent">
               THE LAB
@@ -200,9 +207,10 @@ function BrewLabModal({
         </section>
       ) : (
       <section
-        className="relative flex h-[calc(100vh-7rem)] min-h-0 w-full max-w-7xl flex-col overflow-hidden border-4 border-ink bg-surface font-family-heading shadow-[6px_6px_0_var(--mc-ink)] sm:shadow-[12px_12px_0_var(--mc-ink)] min-[1101px]:grid min-[1101px]:grid-cols-[372px_minmax(0,1fr)]"
+        className="relative flex h-[calc(100dvh-1rem)] min-h-0 w-full max-w-7xl flex-col overflow-hidden border-4 border-ink bg-surface font-family-heading shadow-[6px_6px_0_var(--mc-ink)] sm:h-[calc(100dvh-2rem)] sm:shadow-[12px_12px_0_var(--mc-ink)] min-[1101px]:grid min-[1101px]:grid-cols-[372px_minmax(0,1fr)]"
         onClick={(e) => e.stopPropagation()}
       >
+        {backButton}
         {/* ── Sidebar (desktop ≥1101px) ── */}
         <aside className="hidden min-h-0 border-r-4 border-ink min-[1101px]:flex min-[1101px]:flex-col">
           <ScrollablePanel className="flex-1">
@@ -254,7 +262,8 @@ function BrewLabModal({
 
         {/* ── Selector (mobile <1101px): compact header + swipeable tabs ── */}
         <div className="flex shrink-0 flex-col border-b-4 border-ink min-[1101px]:hidden">
-          <div className="flex items-end justify-between gap-3 px-5 py-4">
+          {/* extra right padding leaves room for the in-box back button */}
+          <div className="flex items-end justify-between gap-3 py-4 pl-5 pr-24">
             <div className="min-w-0">
               <p className="text-2xl font-black tracking-tight text-ink">
                 THE LAB

@@ -14,9 +14,14 @@ import {
 type Props = {
   setCurrentView?: (view: LOGIN_VIEW) => void
   registerHref?: string
+  onUseOtp?: () => void
 }
 
-export default function MonsoonLogin({ setCurrentView, registerHref }: Props) {
+export default function MonsoonLogin({
+  setCurrentView,
+  registerHref,
+  onUseOtp,
+}: Props) {
   const router = useRouter()
   const { countryCode } = useParams() as { countryCode?: string }
   const searchParams = useSearchParams()
@@ -96,6 +101,19 @@ export default function MonsoonLogin({ setCurrentView, registerHref }: Props) {
           Sign In
         </CTAButton>
       </form>
+
+      {onUseOtp && (
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={onUseOtp}
+            className="font-family-heading text-xs font-bold uppercase tracking-[0.14em] text-ink/60 underline underline-offset-4 hover:text-ink"
+            data-testid="use-otp-button"
+          >
+            Sign in with a login code instead
+          </button>
+        </div>
+      )}
 
       <div className="mt-8 border-t border-ink/20 pt-6 flex items-center justify-between gap-4">
         <span className="font-family-base text-sm text-ink/65">

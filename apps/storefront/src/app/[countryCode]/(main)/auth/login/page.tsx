@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import { redirect } from "next/navigation"
 
 import { retrieveCustomer } from "@lib/data/customer"
-import MonsoonLogin from "@modules/account/components/monsoon-login"
+import MonsoonLoginSwitcher from "@modules/account/components/monsoon-login-switcher"
 
 export const metadata: Metadata = {
   title: "Sign In",
@@ -19,5 +19,5 @@ export default async function LoginPage(props: {
     redirect(`/${countryCode}/account`)
   }
 
-  return <MonsoonLogin registerHref="/auth/register" />
+  return <MonsoonLoginSwitcher registerHref="/auth/register" />
 }

@@ -7,6 +7,7 @@ import { PincodeEstimateProvider } from "@modules/checkout/components/pincode-es
 import AddressPincodeCheck from "@modules/checkout/components/address-pincode-check"
 import CheckoutYourBag from "@modules/checkout/components/checkout-your-bag"
 import CheckoutAddressStep from "@modules/checkout/components/checkout-address-step"
+import GuestEmailVerification from "@modules/checkout/components/guest-email-verification"
 
 type Props = {
   cart: HttpTypes.StoreCart
@@ -61,6 +62,19 @@ export default async function MonsoonCheckout({
   const hasPaymentSession = !!activePaymentSession
 
   const canPlaceOrder = hasAddress && hasPaymentSession
+
+  // Guests (no logged-in customer) must verify the email on the cart before
+  // paying. A shopper is verified once `guest_verified_email` matches the cart
+  // email — recorded by the OTP flow and enforced server-side on completion.
+  const isGuest = !customer
+  const cartEmail = cart.email?.trim().toLowerCase() ?? ""
+  const emailVerified =
+    !!cartEmail &&
+    (cart.metadata?.guest_verified_email as string | undefined)?.toLowerCase() ===
+      cartEmail
+  const loginHref = `/auth/login?returnTo=${encodeURIComponent(
+    `/${countryCode}/checkout`
+  )}`
 
   return (
     <PincodeEstimateProvider>
@@ -117,6 +131,11 @@ export default async function MonsoonCheckout({
                   <p className="font-family-base text-sm text-ink/65">
                     Preparing secure payment… refresh if this persists.
                   </p>
+                ) : isGuest && !emailVerified ? (
+                  <GuestEmailVerification
+                    email={cart.email ?? null}
+                    loginHref={loginHref}
+                  />
                 ) : (
                   <PlaceOrder
                     cart={cart}

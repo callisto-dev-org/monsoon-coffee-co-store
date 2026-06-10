@@ -1,0 +1,1 @@
+- [Storefront typecheck pre-existing errors](storefront-typecheck-preexisting-errors.md) — tsc noise that isn't yours; build ignores it

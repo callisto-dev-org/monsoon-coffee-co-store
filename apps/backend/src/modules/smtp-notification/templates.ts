@@ -89,6 +89,45 @@ const registry: Record<string, TemplateFn> = {
     }
   },
 
+  "guest-otp": (d) => ({
+    subject: (d.subject as string) ?? `Your verification code: ${esc(d.code)}`,
+    html: shell(
+      "Verify your email",
+      `<p>Use this code to confirm your email and place your Monsoon Coffee Co. order:</p>
+       <p style="font-size:34px;font-weight:bold;letter-spacing:0.32em;margin:20px 0">${esc(
+         d.code
+       )}</p>
+       <p style="color:#888">This code expires in 10 minutes. If you didn't request it, you can safely ignore this email.</p>`
+    ),
+    text: `Your Monsoon Coffee Co. verification code is ${d.code}. It expires in 10 minutes.`,
+  }),
+
+  "login-otp": (d) => ({
+    subject: (d.subject as string) ?? `Your login code: ${esc(d.code)}`,
+    html: shell(
+      "Sign in to Monsoon Coffee Co.",
+      `<p>Use this code to sign in to your account:</p>
+       <p style="font-size:34px;font-weight:bold;letter-spacing:0.32em;margin:20px 0">${esc(
+         d.code
+       )}</p>
+       <p style="color:#888">This code expires in 10 minutes. If you didn't try to sign in, you can safely ignore this email.</p>`
+    ),
+    text: `Your Monsoon Coffee Co. login code is ${d.code}. It expires in 10 minutes.`,
+  }),
+
+  "password-otp": (d) => ({
+    subject: (d.subject as string) ?? `Your password code: ${esc(d.code)}`,
+    html: shell(
+      "Confirm your password change",
+      `<p>Use this code to set or change your Monsoon Coffee Co. password:</p>
+       <p style="font-size:34px;font-weight:bold;letter-spacing:0.32em;margin:20px 0">${esc(
+         d.code
+       )}</p>
+       <p style="color:#888">This code expires in 10 minutes. If you didn't request this, please ignore this email and your password will stay unchanged.</p>`
+    ),
+    text: `Your Monsoon Coffee Co. password code is ${d.code}. It expires in 10 minutes.`,
+  }),
+
   "order-shipped": (d) => ({
     subject: `Your order #${esc(d.display_id)} has shipped`,
     html: shell(

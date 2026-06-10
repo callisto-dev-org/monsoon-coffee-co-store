@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 
 import MonsoonDashboard from "@modules/account/components/monsoon-dashboard"
 import { retrieveCustomer } from "@lib/data/customer"
+import { getAccountPasswordStatus } from "@lib/data/account-settings"
 import { listOrders } from "@lib/data/orders"
 import { getRegion } from "@lib/data/regions"
 
@@ -23,12 +24,15 @@ export default async function AccountOverview(props: {
     notFound()
   }
 
+  const hasPassword = await getAccountPasswordStatus()
+
   return (
     <MonsoonDashboard
       customer={customer}
       orders={orders}
       countryCode={countryCode}
       region={region}
+      hasPassword={hasPassword}
     />
   )
 }
