@@ -12,6 +12,14 @@ type Props = {
   searchParams: Promise<{ v_id?: string }>
 }
 
+// Rendered dynamically: the shared (main) layout reads per-request cookies
+// (customer + cart) for every page. Prerendering this as static (SSG) leaves
+// the route in a static context where the layout's cookie reads throw
+// DYNAMIC_SERVER_USAGE on on-demand revalidation. Backend product data is still
+// cached via the force-cache fetch tags, so this only moves HTML render to
+// request time, not the data fetch.
+export const dynamic = "force-dynamic"
+
 export async function generateStaticParams() {
   try {
     const countryCodes = await listRegions().then((regions) =>

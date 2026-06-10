@@ -15,6 +15,11 @@ type Props = {
   }>
 }
 
+// See products/[handle]/page.tsx: the shared (main) layout reads per-request
+// cookies, so this route must render dynamically rather than be prerendered as
+// static, otherwise on-demand revalidation throws DYNAMIC_SERVER_USAGE.
+export const dynamic = "force-dynamic"
+
 export async function generateStaticParams() {
   try {
     const product_categories = await listCategories()
