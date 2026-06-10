@@ -24,3 +24,5 @@ build
 
 .medusa
 static/*
+# throwaway email render previews
+.email-preview/

@@ -60,10 +60,6 @@ export default function CheckoutYourBag({ cart }: Props) {
             })}
           </dd>
         </div>
-        <div className="flex items-center justify-between py-1">
-          <dt className="font-semibold text-ink/75">Shipping</dt>
-          <dd className="font-bold text-accent">FREE</dd>
-        </div>
         <div className="mt-3 border-t border-ink/20 pt-3 flex items-end justify-between">
           <dt className="font-family-heading text-xs font-bold uppercase tracking-[0.18em] text-ink/70">
             Total

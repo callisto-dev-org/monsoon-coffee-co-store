@@ -69,6 +69,13 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
               A live log of your beans on their way to you — from our roastery
               ledger to your door.
             </p>
+            <a
+              href={`/api/receipt/${order.id}`}
+              className="mt-5 inline-flex items-center gap-2 border-2 border-ink bg-ink px-5 py-2.5 font-family-heading text-xs font-bold uppercase tracking-[0.12em] text-surface transition-colors hover:bg-accent hover:border-accent sm:text-sm"
+              data-testid="download-receipt-link"
+            >
+              ↓ Download receipt
+            </a>
           </div>
 
           <dl className="grid grid-cols-2 gap-x-8 gap-y-3 border-2 border-ink bg-surface p-5 font-family-base text-[13px] shadow-[4px_4px_0px_0px_var(--mc-accent)] lg:min-w-[280px]">

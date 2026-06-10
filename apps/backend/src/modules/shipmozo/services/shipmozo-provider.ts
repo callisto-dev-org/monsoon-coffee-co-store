@@ -293,17 +293,38 @@ class ShipmozoProviderService extends AbstractFulfillmentProviderService {
     // DTOs don't carry unit_price — Shipmozo rejects /push-order if any
     // product_detail entry has unit_price <= 0, so we MUST resolve it from
     // the parent order's line items via `line_item_id`.
+    type OrderLine = {
+      id?: string
+      unit_price?: unknown
+      title?: string | null
+      product_title?: string | null
+      variant_title?: string | null
+      variant_sku?: string | null
+    }
     const orderLineItems =
-      (order as { items?: Array<{ id?: string; unit_price?: unknown }> } | undefined)?.items ??
-      []
-    const unitPriceByLineItemId = new Map<string, number>()
-    for (const li of orderLineItems) {
-      if (li?.id) {
-        unitPriceByLineItemId.set(
-          li.id,
-          round2(toMajorUnits(li.unit_price))
-        )
+      (order as { items?: OrderLine[] } | undefined)?.items ?? []
+
+    // The fulfillment item's `title` is often the variant value (e.g. "Black"),
+    // not the product. Build the customer-facing name from the order line
+    // item — product title, with the variant appended when it adds info.
+    const pickProductName = (li: OrderLine): string => {
+      const product = (li.product_title ?? "").trim()
+      const variant = (li.variant_title ?? "").trim()
+      const base = product || (li.title ?? "").trim()
+      if (base && variant && variant.toLowerCase() !== base.toLowerCase()) {
+        return `${base} — ${variant}`
       }
+      return base || variant || "Item"
+    }
+
+    const unitPriceByLineItemId = new Map<string, number>()
+    const nameByLineItemId = new Map<string, string>()
+    const skuByLineItemId = new Map<string, string>()
+    for (const li of orderLineItems) {
+      if (!li?.id) continue
+      unitPriceByLineItemId.set(li.id, round2(toMajorUnits(li.unit_price)))
+      nameByLineItemId.set(li.id, pickProductName(li))
+      if (li.variant_sku) skuByLineItemId.set(li.id, li.variant_sku)
     }
 
     const resolveUnitPrice = (it: { line_item_id?: string; unit_price?: unknown }): number => {
@@ -360,21 +381,30 @@ class ShipmozoProviderService extends AbstractFulfillmentProviderService {
       consignee_pin_code: digitsToNumber(address.postal_code),
       consignee_city: address.city ?? "",
       consignee_state: address.province ?? "",
-      product_detail: (items ?? []).map((it) => ({
-        name: it.title ?? "Item",
-        sku_number:
-          (it as { sku?: string }).sku ?? it.barcode ?? "",
-        quantity: Number(it.quantity ?? 1),
-        // Shipmozo's PHP backend reads these fields unconditionally even
-        // though the docs mark them optional. Always send empty strings to
-        // avoid an "Undefined index: <field>" error.
-        discount: "",
-        hsn: (it as { hs_code?: string }).hs_code ?? "",
-        unit_price: resolveUnitPrice(
-          it as { line_item_id?: string; unit_price?: unknown }
-        ),
-        product_category: "Other",
-      })),
+      product_detail: (items ?? []).map((it) => {
+        const lineItemId = (it as { line_item_id?: string }).line_item_id
+        return {
+          name:
+            (lineItemId ? nameByLineItemId.get(lineItemId) : undefined) ??
+            it.title ??
+            "Item",
+          sku_number:
+            (lineItemId ? skuByLineItemId.get(lineItemId) : undefined) ??
+            (it as { sku?: string }).sku ??
+            it.barcode ??
+            "",
+          quantity: Number(it.quantity ?? 1),
+          // Shipmozo's PHP backend reads these fields unconditionally even
+          // though the docs mark them optional. Always send empty strings to
+          // avoid an "Undefined index: <field>" error.
+          discount: "",
+          hsn: (it as { hs_code?: string }).hs_code ?? "",
+          unit_price: resolveUnitPrice(
+            it as { line_item_id?: string; unit_price?: unknown }
+          ),
+          product_category: "Other",
+        }
+      }),
       payment_type: paymentType,
       cod_amount: paymentType === "COD" ? String(orderAmount) : "",
       weight: dims.weight_g,

@@ -39,6 +39,13 @@ export default async function OrderCompletedTemplate({
             Your order was placed successfully. The roaster has the ledger and
             we&apos;ll keep you posted on every step.
           </p>
+          <a
+            href={`/api/receipt/${order.id}`}
+            className="mt-6 inline-flex items-center gap-2 border-2 border-ink bg-ink px-5 py-3 font-family-heading text-sm font-bold uppercase tracking-[0.12em] text-surface transition-colors hover:bg-accent hover:border-accent"
+            data-testid="download-receipt-link"
+          >
+            ↓ Download receipt
+          </a>
         </section>
 
         <div className="mt-10 flex flex-col gap-8">
