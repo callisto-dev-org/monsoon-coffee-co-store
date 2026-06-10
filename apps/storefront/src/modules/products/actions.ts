@@ -1,5 +1,7 @@
 "use server"
 
+import { redirect } from "next/navigation"
+
 import { addToCart, deleteLineItem, updateLineItem } from "@lib/data/cart"
 
 export type CartActionResult =
@@ -27,6 +29,22 @@ export async function addToCartAction(input: {
   } catch (e) {
     return { ok: false, message: toMessage(e) }
   }
+}
+
+// Buy Now: add the variant, then go straight to checkout. On success this
+// redirects (and never returns); it only returns a result when the add fails.
+export async function buyNowAction(input: {
+  variantId: string
+  quantity: number
+  countryCode: string
+}): Promise<CartActionResult | void> {
+  try {
+    await addToCart(input)
+  } catch (e) {
+    return { ok: false, message: toMessage(e) }
+  }
+  // Outside the try so Next's redirect signal isn't swallowed.
+  redirect(`/${input.countryCode}/checkout`)
 }
 
 export async function updateCartItemQuantityAction(input: {

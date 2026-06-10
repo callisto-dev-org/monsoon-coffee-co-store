@@ -21,10 +21,14 @@ import { getLocale } from "./locale-actions"
  * @param cartId - optional - The ID of the cart to retrieve.
  * @returns The cart object if found, or null if not found.
  */
-export async function retrieveCart(cartId?: string, fields?: string) {
+export async function retrieveCart(
+  cartId?: string,
+  fields?: string,
+  opts?: { noCache?: boolean }
+) {
   const id = cartId || (await getCartId())
   fields ??=
-    "*items, *region, *items.product, *items.variant, *items.thumbnail, *items.metadata, +items.total, *promotions, +shipping_methods.name"
+    "*items, *region, *items.product, *items.variant, *items.thumbnail, *items.metadata, +items.total, *promotions, +shipping_methods.name, *payment_collection, *payment_collection.payment_sessions"
 
   if (!id) {
     return null
@@ -32,6 +36,24 @@ export async function retrieveCart(cartId?: string, fields?: string) {
 
   const headers = {
     ...(await getAuthHeaders()),
+  }
+
+  // The checkout flow mutates the cart (address → shipping → payment session)
+  // and then re-reads it within the same render. force-cache memoizes the first
+  // read, so later reads miss the mutations and the page lags a render behind.
+  // noCache forces a fresh read so each step sees the latest state.
+  if (opts?.noCache) {
+    return await sdk.client
+      .fetch<HttpTypes.StoreCartResponse>(`/store/carts/${id}`, {
+        method: "GET",
+        query: {
+          fields,
+        },
+        headers,
+        cache: "no-store",
+      })
+      .then(({ cart }: { cart: HttpTypes.StoreCart }) => cart)
+      .catch(() => null)
   }
 
   const next = {
@@ -59,10 +81,18 @@ export async function getOrSetCart(countryCode: string) {
     throw new Error(`Region not found for country code: ${countryCode}`)
   }
 
-  let cart = await retrieveCart(undefined, "id,region_id")
+  let cart = await retrieveCart(undefined, "id,region_id,completed_at")
 
   const headers = {
     ...(await getAuthHeaders()),
+  }
+
+  // A completed cart (order already placed) can't accept new line items. If the
+  // cookie still points at one — e.g. the customer paid and the order was
+  // created — drop it and create a fresh cart instead of stranding them.
+  if (cart?.completed_at) {
+    await removeCartId()
+    cart = null
   }
 
   if (!cart) {
@@ -397,7 +427,13 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
  * @param cartId - optional - The ID of the cart to place an order for.
  * @returns The cart object if the order was successful, or null if not.
  */
-export async function placeOrder(cartId?: string) {
+/**
+ * Completes a cart into an order without redirecting. Returns the raw
+ * completion response so callers can decide how to navigate. Use this from
+ * client-driven flows (e.g. the Razorpay button) where a server-side redirect
+ * thrown inside a React transition would be swallowed and never navigate.
+ */
+export async function completeCart(cartId?: string) {
   const id = cartId || (await getCartId())
 
   if (!id) {
@@ -418,14 +454,25 @@ export async function placeOrder(cartId?: string) {
     .catch(medusaError)
 
   if (cartRes?.type === "order") {
+    const orderCacheTag = await getCacheTag("orders")
+    revalidateTag(orderCacheTag)
+    await removeCartId()
+  }
+
+  return cartRes
+}
+
+export async function placeOrder(cartId?: string) {
+  const cartRes = await completeCart(cartId)
+
+  if (cartRes?.type === "order") {
     const countryCode =
       cartRes.order.shipping_address?.country_code?.toLowerCase()
 
-    const orderCacheTag = await getCacheTag("orders")
-    revalidateTag(orderCacheTag)
-
-    removeCartId()
-    redirect(`/${countryCode}/account/orders/details/${cartRes?.order.id}`)
+    // Send to the public order-confirmation page, not the account-gated order
+    // details page — guests check out too and would otherwise be bounced to
+    // login and never see their just-placed order.
+    redirect(`/${countryCode}/order/${cartRes.order.id}/confirmed`)
   }
 
   return cartRes.cart

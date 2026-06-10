@@ -61,13 +61,8 @@ export default function CheckoutYourBag({ cart }: Props) {
           </dd>
         </div>
         <div className="flex items-center justify-between py-1">
-          <dt className="font-semibold text-ink/45">Tax</dt>
-          <dd className="font-bold text-ink/55">
-            {convertToLocale({
-              amount: cart.tax_total ?? 0,
-              currency_code: currency,
-            })}
-          </dd>
+          <dt className="font-semibold text-ink/75">Shipping</dt>
+          <dd className="font-bold text-accent">FREE</dd>
         </div>
         <div className="mt-3 border-t border-ink/20 pt-3 flex items-end justify-between">
           <dt className="font-family-heading text-xs font-bold uppercase tracking-[0.18em] text-ink/70">

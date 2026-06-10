@@ -12,7 +12,6 @@ import {
   createShippingOptionsWorkflow,
   createStockLocationsWorkflow,
   createStoresWorkflow,
-  createTaxRegionsWorkflow,
   linkSalesChannelsToApiKeyWorkflow,
   linkSalesChannelsToStockLocationWorkflow,
 } from "@medusajs/medusa/core-flows";
@@ -104,14 +103,7 @@ export default async function initial_data_seed({
   const region = regionResult[0];
   logger.info("Finished seeding regions.");
 
-  logger.info("Seeding tax regions...");
-  await createTaxRegionsWorkflow(container).run({
-    input: countries.map((country_code) => ({
-      country_code,
-      provider_id: "tp_system",
-    })),
-  });
-  logger.info("Finished seeding tax regions.");
+  // Tax regions intentionally not seeded — the store charges no tax.
 
   logger.info("Seeding stock location data...");
   const { result: stockLocationResult } = await createStockLocationsWorkflow(
@@ -177,58 +169,24 @@ export default async function initial_data_seed({
   await createShippingOptionsWorkflow(container).run({
     input: [
       {
-        name: "Standard Shipping",
+        name: "Free Shipping",
         price_type: "flat",
         provider_id: "manual_manual",
         service_zone_id: fulfillmentSet.service_zones[0].id,
         shipping_profile_id: shippingProfile.id,
         type: {
-          label: "Standard",
-          description: "Ship in 2-3 days.",
-          code: "standard",
+          label: "Free Shipping",
+          description: "Free delivery on every order.",
+          code: "free",
         },
         prices: [
           {
             currency_code: "inr",
-            amount: 10,
+            amount: 0,
           },
           {
             region_id: region.id,
-            amount: 10,
-          },
-        ],
-        rules: [
-          {
-            attribute: "enabled_in_store",
-            value: "true",
-            operator: "eq",
-          },
-          {
-            attribute: "is_return",
-            value: "false",
-            operator: "eq",
-          },
-        ],
-      },
-      {
-        name: "Express Shipping",
-        price_type: "flat",
-        provider_id: "manual_manual",
-        service_zone_id: fulfillmentSet.service_zones[0].id,
-        shipping_profile_id: shippingProfile.id,
-        type: {
-          label: "Express",
-          description: "Ship in 24 hours.",
-          code: "express",
-        },
-        prices: [
-          {
-            currency_code: "inr",
-            amount: 10,
-          },
-          {
-            region_id: region.id,
-            amount: 10,
+            amount: 0,
           },
         ],
         rules: [

@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
 
 import { placeRazorpayOrder } from "@modules/checkout/actions"
@@ -21,6 +22,7 @@ type RazorpayResponse = {
 
 type RazorpayInstance = {
   open: () => void
+  close: () => void
   on: (event: string, handler: (response: unknown) => void) => void
 }
 
@@ -80,6 +82,7 @@ export default function RazorpayButton({
   children,
   disabled,
 }: Props) {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [, startTransition] = useTransition()
@@ -111,10 +114,19 @@ export default function RazorpayButton({
     const completeOrder = () => {
       startTransition(async () => {
         try {
-          await placeRazorpayOrder({
+          const result = await placeRazorpayOrder({
             cartId: cart.id,
             countryCode,
           })
+          if (result.success) {
+            // Navigate client-side. A server-side redirect thrown inside this
+            // transition would be swallowed, stranding the customer on the
+            // Razorpay window after a successful payment.
+            router.push(result.redirectTo)
+            return
+          }
+          setLoading(false)
+          setError(result.error)
         } catch (e) {
           setLoading(false)
           setError(e instanceof Error ? e.message : "Could not place order")
@@ -141,8 +153,11 @@ export default function RazorpayButton({
       },
       theme: { color: "#1a1a1a" },
       handler: () => {
-        // Razorpay has charged the order. The backend re-verifies the payment
-        // status with Razorpay during cart completion before creating the order.
+        // Razorpay has charged the order. Dismiss its overlay before we
+        // navigate (client-side nav won't tear down the body-level modal),
+        // then complete the order. The backend re-verifies the payment status
+        // with Razorpay during cart completion before creating the order.
+        rzp.close()
         completeOrder()
       },
       modal: {
@@ -154,7 +169,7 @@ export default function RazorpayButton({
     })
 
     rzp.open()
-  }, [cart, countryCode, data, session])
+  }, [cart, countryCode, data, session, router])
 
   return (
     <div className="flex flex-col gap-3">

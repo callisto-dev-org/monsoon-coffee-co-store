@@ -3,11 +3,13 @@ import { redirect } from "next/navigation"
 
 import { retrieveCart, updateCart } from "@lib/data/cart"
 import { retrieveCustomer } from "@lib/data/customer"
-import { listCartPaymentMethods } from "@lib/data/payment"
 import { listCartShippingMethods } from "@lib/data/fulfillment"
 import { getRegion } from "@lib/data/regions"
 import MonsoonCheckout from "@modules/checkout/templates/monsoon-checkout"
-import { ensureShippingSelected } from "@modules/checkout/actions"
+import {
+  ensureRazorpaySession,
+  ensureShippingSelected,
+} from "@modules/checkout/actions"
 
 export const metadata: Metadata = {
   title: "Checkout — Monsoon Coffee Co.",
@@ -20,17 +22,20 @@ export default async function CheckoutPage(props: {
   const { countryCode } = await props.params
   const { error } = await props.searchParams
 
-  let cart = await retrieveCart()
+  // Read fresh (no cache) throughout: this page mutates the cart in steps
+  // (address → shipping → payment session) and re-reads it within the same
+  // render, so a cached read would lag a step behind and strand the payment
+  // step on "Preparing secure payment…".
+  let cart = await retrieveCart(undefined, undefined, { noCache: true })
 
   if (!cart || !cart.items?.length) {
     redirect(`/${countryCode}/cart`)
   }
 
+  // Guests can check out — login is optional. When the shopper is signed in we
+  // use their saved details for prefill/auto-address below; otherwise they
+  // simply enter an email + address in the form.
   const customer = await retrieveCustomer().catch(() => null)
-  if (!customer) {
-    const returnTo = encodeURIComponent(`/${countryCode}/checkout`)
-    redirect(`/${countryCode}/auth/login?returnTo=${returnTo}`)
-  }
 
   const region = await getRegion(countryCode)
   if (!region) {
@@ -40,7 +45,7 @@ export default async function CheckoutPage(props: {
   // If the cart has no shipping address yet, but the customer has a default
   // shipping address that's in this region, auto-apply it so the form is
   // pre-filled and the order can move forward.
-  if (!cart.shipping_address?.address_1) {
+  if (!cart.shipping_address?.address_1 && customer) {
     const regionCountries = new Set(
       (region.countries ?? [])
         .map((c) => c.iso_2?.toLowerCase())
@@ -77,7 +82,7 @@ export default async function CheckoutPage(props: {
           shipping_address: shippingAddress,
           billing_address: shippingAddress,
         })
-        cart = (await retrieveCart()) ?? cart
+        cart = (await retrieveCart(undefined, undefined, { noCache: true })) ?? cart
       } catch {
         // Best-effort — fall through to manual entry on failure
       }
@@ -94,7 +99,7 @@ export default async function CheckoutPage(props: {
       const options = await listCartShippingMethods(cart.id).catch(() => null)
       if (options?.length) {
         await ensureShippingSelected()
-        cart = (await retrieveCart()) ?? cart
+        cart = (await retrieveCart(undefined, undefined, { noCache: true })) ?? cart
       }
     } catch {
       // Best-effort — placeOrderAction also calls ensureShippingSelected as a
@@ -102,16 +107,29 @@ export default async function CheckoutPage(props: {
     }
   }
 
-  const paymentProviders = await listCartPaymentMethods(region.id).catch(
-    () => null
-  )
+  // The payment-method picker was removed — Razorpay is the only option. Once an
+  // address (and thus shipping) is in place, auto-create the Razorpay session so
+  // the customer goes straight to "Review & Place Order". Idempotent.
+  if (
+    hasAddress &&
+    cart.shipping_methods?.length &&
+    !cart.payment_collection?.payment_sessions?.some(
+      (s) => s.status === "pending"
+    )
+  ) {
+    try {
+      await ensureRazorpaySession()
+      cart = (await retrieveCart(undefined, undefined, { noCache: true })) ?? cart
+    } catch {
+      // Best-effort — the customer can still retry from the review step.
+    }
+  }
 
   return (
     <MonsoonCheckout
       cart={cart}
       region={region}
       customer={customer}
-      paymentProviders={paymentProviders ?? []}
       countryCode={countryCode}
       errorMessage={error}
     />

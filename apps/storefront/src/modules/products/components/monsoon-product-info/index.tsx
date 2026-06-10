@@ -8,6 +8,7 @@ import { HttpTypes } from "@medusajs/types"
 
 import {
   addToCartAction,
+  buyNowAction,
   updateCartItemQuantityAction,
 } from "@modules/products/actions"
 import { getProductPrice } from "@lib/util/get-product-price"
@@ -46,6 +47,7 @@ export default function MonsoonProductInfo({
   const { countryCode } = useParams() as { countryCode: string }
   const [activeImageIdx, setActiveImageIdx] = useState(0)
   const [isAdding, setIsAdding] = useState(false)
+  const [isBuying, setIsBuying] = useState(false)
   const [cartError, setCartError] = useState<string | null>(null)
   const [options, setOptions] = useState<Record<string, string | undefined>>({})
   const [optimisticQty, setOptimisticQty] = useState<number | null>(null)
@@ -166,7 +168,8 @@ export default function MonsoonProductInfo({
         setCartError(result.message)
         return
       }
-      router.push(`/${countryCode}/cart`)
+      // Just add to the bag — no redirect. The cart dropdown auto-opens to
+      // confirm, and the in-page quantity stepper appears for this variant.
       router.refresh()
     } catch (e) {
       const message =
@@ -182,16 +185,39 @@ export default function MonsoonProductInfo({
 
   const handleAddToCart = async () => {
     if (!selectedVariant?.id) return
+    await runAddToCart(selectedVariant.id)
+  }
 
-    if (!isAuthenticated) {
-      const returnTo = `/${countryCode}/products/${product.handle}?autoAdd=${encodeURIComponent(selectedVariant.id)}`
-      router.push(
-        `/${countryCode}/auth/login?returnTo=${encodeURIComponent(returnTo)}`
-      )
+  // Buy Now: if the variant is already in the bag, go straight to checkout;
+  // otherwise add it first, then the server action redirects to checkout.
+  const handleBuyNow = async () => {
+    if (!selectedVariant?.id) return
+
+    if (lineItem && inCartQty > 0) {
+      router.push(`/${countryCode}/checkout`)
       return
     }
 
-    await runAddToCart(selectedVariant.id)
+    setIsBuying(true)
+    setCartError(null)
+    try {
+      const result = await buyNowAction({
+        variantId: selectedVariant.id,
+        quantity: 1,
+        countryCode,
+      })
+      // On success the action redirects to checkout and never returns a value;
+      // we only land here on failure.
+      if (result && !result.ok) {
+        setCartError(result.message)
+        setIsBuying(false)
+      }
+    } catch (e) {
+      const message =
+        e instanceof Error ? e.message : "Could not start checkout."
+      setCartError(message)
+      setIsBuying(false)
+    }
   }
 
   useEffect(() => {
@@ -412,7 +438,7 @@ export default function MonsoonProductInfo({
           <CTAButton
             type="button"
             onClick={handleAddToCart}
-            disabled={!selectedVariant || isAdding || !inStock}
+            disabled={!selectedVariant || isAdding || isBuying || !inStock}
             className="w-full py-4 text-lg font-medium tracking-tighter mt-2 disabled:opacity-50"
           >
             {!selectedVariant
@@ -423,11 +449,20 @@ export default function MonsoonProductInfo({
               ? "Out of Stock"
               : isAdding
               ? "Adding..."
-              : !isAuthenticated
-              ? "Sign In to Add"
               : "Add to Bag"}
           </CTAButton>
         )}
+
+        {/* Buy Now — express checkout for the selected variant. */}
+        <button
+          type="button"
+          onClick={handleBuyNow}
+          disabled={!selectedVariant || !inStock || isBuying || isAdding}
+          className="w-full border-2 border-ink bg-surface py-4 font-family-heading text-lg font-bold uppercase tracking-tighter text-ink hover:bg-ink hover:text-surface disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isBuying ? "Starting…" : "Buy Now"}
+        </button>
+
         {cartError && (
           <p
             role="alert"

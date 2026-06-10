@@ -2,29 +2,34 @@ import { loadEnv, defineConfig } from "@medusajs/framework/utils";
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd());
 
-// Email delivery: if SendGrid is configured via env, route the "email" channel
-// through it for real delivery; otherwise fall back to the local provider,
-// which logs notifications to the backend console (zero-config, dev-friendly).
-// The local provider always owns the "feed" channel used by admin notifications.
-const emailViaSendgrid = !!process.env.SENDGRID_API_KEY;
+// Email delivery: when SMTP is configured (SMTP_HOST + SMTP_FROM), a custom
+// nodemailer-based provider owns the "email" channel for real delivery and the
+// local provider is restricted to "feed". Otherwise the local provider also
+// handles "email" by logging payloads to the backend console (zero-config,
+// dev-friendly). Exactly one provider may claim a given channel.
+const smtpConfigured = !!process.env.SMTP_HOST && !!process.env.SMTP_FROM;
 const notificationProviders: any[] = [
   {
     resolve: "@medusajs/medusa/notification-local",
     id: "local",
     options: {
       name: "Local Notification Provider",
-      channels: emailViaSendgrid ? ["feed"] : ["feed", "email"],
+      channels: smtpConfigured ? ["feed"] : ["feed", "email"],
     },
   },
 ];
-if (emailViaSendgrid) {
+if (smtpConfigured) {
   notificationProviders.push({
-    resolve: "@medusajs/medusa/notification-sendgrid",
-    id: "sendgrid",
+    resolve: "./src/modules/smtp-notification",
+    id: "smtp",
     options: {
       channels: ["email"],
-      api_key: process.env.SENDGRID_API_KEY,
-      from: process.env.SENDGRID_FROM,
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT ?? 587),
+      secure: process.env.SMTP_SECURE === "true",
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+      from: process.env.SMTP_FROM,
     },
   });
 }

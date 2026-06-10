@@ -1,9 +1,7 @@
 import { HttpTypes } from "@medusajs/types"
 
 import { convertToLocale } from "@lib/util/money"
-import MonsoonPaymentPicker from "@modules/checkout/components/monsoon-payment-picker"
 import PlaceOrder from "@modules/checkout/components/place-order"
-import { isRazorpay } from "@lib/constants"
 import { CheckIcon } from "@modules/common/icons/monsoon/check"
 import { PincodeEstimateProvider } from "@modules/checkout/components/pincode-estimate-context"
 import AddressPincodeCheck from "@modules/checkout/components/address-pincode-check"
@@ -14,7 +12,6 @@ type Props = {
   cart: HttpTypes.StoreCart
   region: HttpTypes.StoreRegion
   customer: HttpTypes.StoreCustomer | null
-  paymentProviders: { id: string }[]
   countryCode: string
   errorMessage?: string
 }
@@ -53,7 +50,6 @@ export default async function MonsoonCheckout({
   cart,
   region,
   customer,
-  paymentProviders,
   countryCode,
   errorMessage,
 }: Props) {
@@ -63,7 +59,6 @@ export default async function MonsoonCheckout({
     (s) => s.status === "pending"
   )
   const hasPaymentSession = !!activePaymentSession
-  const usingRazorpay = !!isRazorpay(activePaymentSession?.provider_id)
 
   const canPlaceOrder = hasAddress && hasPaymentSession
 
@@ -110,40 +105,22 @@ export default async function MonsoonCheckout({
               </div>
             </section>
 
-            {/* Step 2: Payment */}
+            {/* Step 2: Review & Place */}
             <section className="flex flex-col gap-5">
-              <StepHeader
-                index={2}
-                title="Payment Method"
-                done={hasPaymentSession}
-              />
-              {!hasAddress ? (
-                <p className="border-2 border-ink/30 bg-surface p-4 font-family-base text-sm text-ink/65 sm:p-5">
-                  Save your shipping address before selecting a payment method.
-                </p>
-              ) : (
-                <div className="border-2 border-ink bg-surface p-4 sm:p-6">
-                  <MonsoonPaymentPicker
-                    providers={paymentProviders}
-                    cart={cart}
-                  />
-                </div>
-              )}
-            </section>
-
-            {/* Step 3: Review & Place */}
-            <section className="flex flex-col gap-5">
-              <StepHeader index={3} title="Review & Place Order" />
+              <StepHeader index={2} title="Review & Place Order" />
               <div className="border-2 border-ink bg-surface p-4 sm:p-6">
-                {!canPlaceOrder ? (
+                {!hasAddress ? (
                   <p className="font-family-base text-sm text-ink/65">
-                    Complete the previous steps to enable order placement.
+                    Save your shipping address to place your order.
+                  </p>
+                ) : !canPlaceOrder ? (
+                  <p className="font-family-base text-sm text-ink/65">
+                    Preparing secure payment… refresh if this persists.
                   </p>
                 ) : (
                   <PlaceOrder
                     cart={cart}
                     countryCode={countryCode}
-                    usingRazorpay={usingRazorpay}
                     totalLabel={convertToLocale({
                       amount: cart.total ?? 0,
                       currency_code: currency,

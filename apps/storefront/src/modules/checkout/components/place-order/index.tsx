@@ -3,29 +3,21 @@
 import { useState } from "react"
 import { HttpTypes } from "@medusajs/types"
 
-import { placeOrderAction } from "@modules/checkout/actions"
 import RazorpayButton from "@modules/checkout/components/razorpay-button"
-import { CTAButton } from "@modules/common/components/monsoon/buttons"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 type Props = {
   cart: HttpTypes.StoreCart
   countryCode: string
   totalLabel: string
-  usingRazorpay: boolean
 }
 
 /**
  * Final checkout step: an explicit terms agreement the customer must tick
- * before the order can be placed, gating either the Razorpay button or the
- * standard place-order form.
+ * before paying. Razorpay is the only payment method, so this always renders
+ * the Razorpay pay button.
  */
-export default function PlaceOrder({
-  cart,
-  countryCode,
-  totalLabel,
-  usingRazorpay,
-}: Props) {
+export default function PlaceOrder({ cart, countryCode, totalLabel }: Props) {
   const [agreed, setAgreed] = useState(false)
 
   const agreement = (
@@ -56,36 +48,20 @@ export default function PlaceOrder({
     </label>
   )
 
-  if (usingRazorpay) {
-    return (
-      <div className="flex flex-col gap-4">
-        <p className="font-family-base text-sm text-ink/65">
-          You&apos;ll complete payment in Razorpay&apos;s secure checkout window.
-        </p>
-        {agreement}
-        <RazorpayButton
-          cart={cart}
-          countryCode={countryCode}
-          disabled={!agreed}
-          className="w-full border-2 border-ink bg-ink px-4 py-3 font-family-heading text-sm font-bold uppercase tracking-[0.12em] text-surface hover:bg-surface hover:text-ink disabled:cursor-not-allowed disabled:opacity-60 sm:py-4 sm:text-base sm:tracking-[0.16em] lg:text-lg"
-        >
-          {`Pay with Razorpay — ${totalLabel}`}
-        </RazorpayButton>
-      </div>
-    )
-  }
-
   return (
-    <form action={placeOrderAction} className="flex flex-col gap-4">
-      <input type="hidden" name="country_code" value={countryCode} />
+    <div className="flex flex-col gap-4">
+      <p className="font-family-base text-sm text-ink/65">
+        You&apos;ll complete payment in Razorpay&apos;s secure checkout window.
+      </p>
       {agreement}
-      <CTAButton
-        type="submit"
+      <RazorpayButton
+        cart={cart}
+        countryCode={countryCode}
         disabled={!agreed}
-        className="w-full px-4 py-3 font-family-heading text-sm font-bold uppercase tracking-[0.12em] disabled:cursor-not-allowed disabled:opacity-60 sm:py-4 sm:text-base sm:tracking-[0.16em] lg:text-lg"
+        className="w-full border-2 border-ink bg-ink px-4 py-3 font-family-heading text-sm font-bold uppercase tracking-[0.12em] text-surface hover:bg-surface hover:text-ink disabled:cursor-not-allowed disabled:opacity-60 sm:py-4 sm:text-base sm:tracking-[0.16em] lg:text-lg"
       >
-        Place Order — {totalLabel}
-      </CTAButton>
-    </form>
+        {`Pay with Razorpay — ${totalLabel}`}
+      </RazorpayButton>
+    </div>
   )
 }

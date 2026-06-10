@@ -2,14 +2,21 @@
 
 import { revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
+import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 import { getCacheTag, getCartId } from "@lib/data/cookies"
 import {
+  completeCart,
   initiatePaymentSession,
   placeOrder,
   setShippingMethod,
   updateCart,
 } from "@lib/data/cart"
+
+// The only payment provider offered at checkout. The picker UI was removed —
+// the Razorpay session is created automatically when the customer reaches the
+// payment step.
+const RAZORPAY_PROVIDER_ID = "pp_razorpay_razorpay"
 import { retrieveCart } from "@lib/data/cart"
 import { upsertDefaultShippingAddress } from "@lib/data/customer"
 import { listCartShippingMethods } from "@lib/data/fulfillment"
@@ -140,6 +147,16 @@ export async function saveCheckoutAddress(
       // noop
     }
 
+    // Create the Razorpay session here too, so the "Review & Place Order" step
+    // shows the pay button immediately after the address is saved — without
+    // this the session is only created on the next page render, so the customer
+    // would have to refresh to load Razorpay.
+    try {
+      await ensureRazorpaySession()
+    } catch {
+      // noop — the checkout page also creates the session on load.
+    }
+
     return { errors: {}, message: null, values }
   } catch (e) {
     return {
@@ -192,7 +209,10 @@ export async function placeOrderAction(formData: FormData) {
     await ensureShippingSelected()
     await placeOrder()
   } catch (e) {
-    // Order placement throws redirect on success, so we only land here on failure
+    // placeOrder() redirects to the order page on success, which surfaces here
+    // as a Next redirect "error" — let it propagate instead of treating it as
+    // a failure.
+    if (isRedirectError(e)) throw e
     const message = e instanceof Error ? e.message : "Could not place order"
     redirect(
       `/${countryCode}/checkout?error=${encodeURIComponent(message)}`
@@ -200,27 +220,67 @@ export async function placeOrderAction(formData: FormData) {
   }
 }
 
+export type PlaceRazorpayOrderResult =
+  | { success: true; redirectTo: string }
+  | { success: false; error: string }
+
+/**
+ * Completes the cart after a successful Razorpay payment and RETURNS where to
+ * navigate, rather than issuing a server-side redirect. This is called from the
+ * Razorpay button inside a React transition, where a thrown redirect would be
+ * swallowed and never navigate — leaving the customer stuck on the payment
+ * window. The client navigates with router.push using redirectTo.
+ */
 export async function placeRazorpayOrder(input: {
   cartId: string
   countryCode: string
-}) {
+}): Promise<PlaceRazorpayOrderResult> {
   const cacheTag = await getCacheTag("carts")
   revalidateTag(cacheTag)
 
   try {
-    await placeOrder(input.cartId)
+    const cartRes = await completeCart(input.cartId)
+    if (cartRes?.type === "order") {
+      const countryCode =
+        cartRes.order.shipping_address?.country_code?.toLowerCase() ||
+        input.countryCode.toLowerCase()
+      return {
+        success: true,
+        redirectTo: `/${countryCode}/order/${cartRes.order.id}/confirmed`,
+      }
+    }
+    return {
+      success: false,
+      error: "Payment could not be confirmed. Please contact support.",
+    }
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Could not place order"
-    redirect(
-      `/${input.countryCode.toLowerCase()}/checkout?error=${encodeURIComponent(
-        message
-      )}`
-    )
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : "Could not place order",
+    }
   }
 }
 
+// Auto-create the Razorpay payment session when none is pending yet. Idempotent:
+// if a pending session already exists we leave it, so re-renders of the checkout
+// page don't spin up duplicate Razorpay orders.
+export async function ensureRazorpaySession() {
+  // Read fresh: a cached cart can miss a shipping method that was just selected
+  // (or a session that was just created), causing us to skip or duplicate work.
+  const cart = await retrieveCart(undefined, undefined, { noCache: true })
+  if (!cart) return null
+
+  const pending = cart.payment_collection?.payment_sessions?.find(
+    (s) => s.status === "pending"
+  )
+  if (pending) return pending
+
+  await initiatePaymentSession(cart, { provider_id: RAZORPAY_PROVIDER_ID })
+  return null
+}
+
 export async function ensureShippingSelected() {
-  const cart = await retrieveCart()
+  const cart = await retrieveCart(undefined, undefined, { noCache: true })
   if (!cart) return null
 
   if (cart.shipping_methods?.length) return cart.shipping_methods[0]

@@ -21,7 +21,6 @@ export default function MonsoonCartSummary({ cart }: Props) {
   const currency = cart.currency_code
 
   const subtotal = cart.subtotal ?? 0
-  const tax = cart.tax_total ?? 0
   const total = cart.total ?? 0
 
   const initialPincode =
@@ -45,12 +44,6 @@ export default function MonsoonCartSummary({ cart }: Props) {
           <span className="font-semibold text-ink/85">Subtotal</span>
           <span className="font-black text-ink">
             {convertToLocale({ amount: subtotal, currency_code: currency })}
-          </span>
-        </div>
-        <div className="mt-4 flex items-center justify-between">
-          <span className="font-semibold text-ink/45">Estimated Tax</span>
-          <span className="font-bold text-ink/55">
-            {convertToLocale({ amount: tax, currency_code: currency })}
           </span>
         </div>
       </div>

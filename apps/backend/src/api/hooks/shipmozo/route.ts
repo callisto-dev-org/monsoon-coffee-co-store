@@ -30,6 +30,7 @@ type OrderFulfillmentRow = {
 type OrderRow = {
   id?: string
   display_id?: number | string
+  email?: string | null
   status?: string | null
   items?: Array<{ id?: string; quantity?: number }>
   fulfillments?: OrderFulfillmentRow[]
@@ -98,6 +99,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       fields: [
         "id",
         "display_id",
+        "email",
         "status",
         "items.id",
         "items.quantity",
@@ -171,12 +173,23 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       order_id: shipmozoOrderId || referenceId,
     } as ShipmozoFulfillmentData)
 
+  // Shipmozo's webhook doesn't carry a tracking URL, so build a customer-facing
+  // tracking link from a configurable base + AWB when both are available.
+  const awbForUrl = payload.awb_number ?? existing.awb_number
+  const trackingBase = process.env.SHIPMOZO_TRACKING_URL_BASE?.trim()
+  const trackingUrl =
+    existing.tracking_url ??
+    (trackingBase && awbForUrl
+      ? `${trackingBase}${encodeURIComponent(awbForUrl)}`
+      : undefined)
+
   const merged: ShipmozoFulfillmentData = {
     ...existing,
     order_id: existing.order_id ?? shipmozoOrderId ?? referenceId,
     reference_id: existing.reference_id ?? referenceId,
     awb_number: payload.awb_number ?? existing.awb_number,
     courier: payload.carrier ?? existing.courier,
+    tracking_url: trackingUrl,
     current_status: currentStatus || existing.current_status,
     status_time: payload.status_time ?? existing.status_time,
   }
@@ -228,6 +241,36 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       logger.info(
         `shipmozo-webhook: registered shipment for order ${order.id} (awb=${awb}).`
       )
+
+      // Notify the customer their order has shipped — once, on first AWB. The
+      // `!fulfillment.shipped_at` guard above ensures this block runs a single
+      // time; a mail failure must not break the webhook or shipment.
+      if (order.email) {
+        try {
+          const notificationService = req.scope.resolve(Modules.NOTIFICATION)
+          await notificationService.createNotifications({
+            to: order.email,
+            channel: "email",
+            template: "order-shipped",
+            data: {
+              display_id: order.display_id,
+              awb,
+              courier: merged.courier ?? "",
+              tracking_url: merged.tracking_url ?? "",
+              subject: `Your order #${order.display_id} has shipped`,
+            },
+          })
+          logger.info(
+            `shipmozo-webhook: sent shipped email for order ${order.id}.`
+          )
+        } catch (e) {
+          logger.error(
+            `shipmozo-webhook: failed to send shipped email for order ${order.id} — ${
+              (e as Error).message
+            }`
+          )
+        }
+      }
     } catch (e) {
       logger.error(
         `shipmozo-webhook: failed to register shipment for order ${order.id} — ${
