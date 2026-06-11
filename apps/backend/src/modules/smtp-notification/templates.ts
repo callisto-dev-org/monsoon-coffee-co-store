@@ -302,25 +302,6 @@ const registry: Record<string, TemplateFn> = {
     }`,
   }),
 
-  "guest-otp": (d) => ({
-    subject: (d.subject as string) ?? `Your verification code: ${esc(d.code)}`,
-    html: shell({
-      eyebrow: "Checkout",
-      heading: "Verify your email",
-      preheader: "Your one-time checkout code (expires in 10 minutes).",
-      bodyHtml:
-        para(
-          "Use this code to confirm your email and place your order:"
-        ) +
-        codeBlock(d.code) +
-        para(
-          "This code expires in 10 minutes. If you didn't request it, you can safely ignore this email.",
-          `font-size:13px;color:${MUTED}`
-        ),
-    }),
-    text: `Your Monsoon Coffee Co. verification code is ${d.code}. It expires in 10 minutes.`,
-  }),
-
   "login-otp": (d) => ({
     subject: (d.subject as string) ?? `Your login code: ${esc(d.code)}`,
     html: shell({

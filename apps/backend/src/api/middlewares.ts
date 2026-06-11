@@ -8,7 +8,6 @@ import { filterCategoryMiddlewares } from "./admin/filter-categories/middlewares
 import { reviewStoreMiddlewares } from "./store/products/[id]/reviews/middlewares"
 import { contactStoreMiddlewares } from "./store/contact/middlewares"
 import { newsletterStoreMiddlewares } from "./store/newsletter/middlewares"
-import { guestOtpStoreMiddlewares } from "./store/guest-otp/middlewares"
 import { authOtpStoreMiddlewares } from "./store/auth-otp/middlewares"
 import { customerMeStoreMiddlewares } from "./store/customers/me/middlewares"
 import { contactMessageAdminMiddlewares } from "./admin/contact-messages/middlewares"
@@ -35,7 +34,6 @@ export default defineMiddlewares({
     ...reviewStoreMiddlewares,
     ...contactStoreMiddlewares,
     ...newsletterStoreMiddlewares,
-    ...guestOtpStoreMiddlewares,
     ...authOtpStoreMiddlewares,
     ...customerMeStoreMiddlewares,
     ...contactMessageAdminMiddlewares,
