@@ -13,28 +13,30 @@ type Params = {
     sortBy?: SortOptions
     page?: string
     tag_id?: string | string[]
+    category_id?: string | string[]
   }>
   params: Promise<{
     countryCode: string
   }>
 }
 
+const toArray = (v?: string | string[]) =>
+  Array.isArray(v) ? v.filter(Boolean) : v ? [v] : []
+
 export default async function StorePage(props: Params) {
   const params = await props.params
   const searchParams = await props.searchParams
-  const { sortBy, page, tag_id } = searchParams
+  const { sortBy, page, tag_id, category_id } = searchParams
 
-  const tagIds = Array.isArray(tag_id)
-    ? tag_id.filter(Boolean)
-    : tag_id
-    ? [tag_id]
-    : []
+  const tagIds = toArray(tag_id)
+  const categoryIds = toArray(category_id)
 
   return (
     <StoreTemplate
       sortBy={sortBy}
       page={page}
       tagIds={tagIds.length > 0 ? tagIds : undefined}
+      categoryIds={categoryIds.length > 0 ? categoryIds : undefined}
       countryCode={params.countryCode}
     />
   )

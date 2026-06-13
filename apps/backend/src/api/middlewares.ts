@@ -4,6 +4,7 @@ import { brewRecipeMiddlewares } from "./admin/brew-recipes/middlewares"
 import { brewSettingsMiddlewares } from "./admin/brew-settings/middlewares"
 import { coffeeBeanSettingsMiddlewares } from "./admin/coffee-bean-settings/middlewares"
 import { coffeeProfileMiddlewares } from "./admin/products/[id]/coffee-profile/middlewares"
+import { eventDetailMiddlewares } from "./admin/products/[id]/event-detail/middlewares"
 import { filterCategoryMiddlewares } from "./admin/filter-categories/middlewares"
 import { reviewStoreMiddlewares } from "./store/products/[id]/reviews/middlewares"
 import { contactStoreMiddlewares } from "./store/contact/middlewares"
@@ -30,6 +31,7 @@ export default defineMiddlewares({
     ...brewSettingsMiddlewares,
     ...coffeeBeanSettingsMiddlewares,
     ...coffeeProfileMiddlewares,
+    ...eventDetailMiddlewares,
     ...filterCategoryMiddlewares,
     ...reviewStoreMiddlewares,
     ...contactStoreMiddlewares,

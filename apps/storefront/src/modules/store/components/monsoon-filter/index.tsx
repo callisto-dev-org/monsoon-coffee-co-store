@@ -9,13 +9,17 @@ import type {
   StoreFilterTag,
 } from "@lib/data/filter-categories"
 
+type ProductCategoryOption = { id: string; name: string }
+
 type FilterProps = {
   categories: StoreFilterCategory[]
+  productCategories?: ProductCategoryOption[]
   className?: string
 }
 
 export default function MonsoonFilter({
   categories,
+  productCategories = [],
   className = "",
 }: FilterProps) {
   const router = useRouter()
@@ -23,17 +27,22 @@ export default function MonsoonFilter({
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
-  // Selected tag IDs come from the URL — single source of truth.
-  const selectedTagIds = useMemo(() => {
-    const raw = searchParams.getAll("tag_id")
-    return new Set(raw.filter(Boolean))
-  }, [searchParams])
+  // Selected IDs come from the URL — single source of truth. Tags filter via
+  // `tag_id`, product categories via `category_id`.
+  const selectedTagIds = useMemo(
+    () => new Set(searchParams.getAll("tag_id").filter(Boolean)),
+    [searchParams]
+  )
+  const selectedCategoryIds = useMemo(
+    () => new Set(searchParams.getAll("category_id").filter(Boolean)),
+    [searchParams]
+  )
 
-  const setSelectedTagIds = useCallback(
-    (next: Set<string>) => {
+  const setParamSet = useCallback(
+    (param: string, next: Set<string>) => {
       const params = new URLSearchParams(searchParams.toString())
-      params.delete("tag_id")
-      Array.from(next).forEach((id) => params.append("tag_id", id))
+      params.delete(param)
+      Array.from(next).forEach((id) => params.append(param, id))
       // Reset pagination when filters change.
       params.delete("page")
       const qs = params.toString()
@@ -44,18 +53,37 @@ export default function MonsoonFilter({
     [router, searchParams]
   )
 
-  const toggleTag = (tagId: string, checked: boolean) => {
-    const next = new Set(selectedTagIds)
-    if (checked) next.add(tagId)
-    else next.delete(tagId)
-    setSelectedTagIds(next)
+  const toggleIn = (
+    param: string,
+    set: Set<string>,
+    id: string,
+    checked: boolean
+  ) => {
+    const next = new Set(set)
+    if (checked) next.add(id)
+    else next.delete(id)
+    setParamSet(param, next)
   }
 
-  const clearAll = () => setSelectedTagIds(new Set())
+  const toggleTag = (tagId: string, checked: boolean) =>
+    toggleIn("tag_id", selectedTagIds, tagId, checked)
+  const toggleCategory = (categoryId: string, checked: boolean) =>
+    toggleIn("category_id", selectedCategoryIds, categoryId, checked)
 
-  const selectedCount = selectedTagIds.size
+  const clearAll = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("tag_id")
+    params.delete("category_id")
+    params.delete("page")
+    const qs = params.toString()
+    startTransition(() => {
+      router.replace(qs ? `?${qs}` : "?", { scroll: false })
+    })
+  }
 
-  if (!categories.length) {
+  const selectedCount = selectedTagIds.size + selectedCategoryIds.size
+
+  if (!categories.length && !productCategories.length) {
     // Nothing to filter by — render nothing so we don't show an empty rail.
     return null
   }
@@ -118,6 +146,22 @@ export default function MonsoonFilter({
                 Clear all
               </button>
             </div>
+          )}
+
+          {productCategories.length > 0 && (
+            <span className="flex flex-col gap-3 font-family-heading text-ink">
+              <span className="my-4 border-b-2 border-ink py-2 text-2xl font-bold tracking-tight">
+                Category
+              </span>
+              {productCategories.map((cat) => (
+                <FilterCheckbox
+                  key={cat.id}
+                  tag={{ id: cat.id, value: cat.name }}
+                  checked={selectedCategoryIds.has(cat.id)}
+                  onChange={(c) => toggleCategory(cat.id, c)}
+                />
+              ))}
+            </span>
           )}
 
           {categories.map((category) => (

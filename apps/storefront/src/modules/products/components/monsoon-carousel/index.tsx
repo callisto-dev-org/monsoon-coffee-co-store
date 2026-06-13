@@ -1,9 +1,22 @@
 export default function MonsoonProductCarousel({
-  items = ["FRESHLY ROASTED", "SMALL BATCH", "DIRECT TRADE", "MONSOON BLEND"],
+  items = [],
 }: {
   items?: string[]
 }) {
-  const looped = [...items, ...items]
+  const base = items.map((t) => t?.trim()).filter(Boolean) as string[]
+
+  // No text → no carousel.
+  if (base.length === 0) return null
+
+  // The CSS loop translates the track by -50%, so ONE "set" must be wide enough
+  // to cover the viewport or the marquee shows gaps. Inputs are arbitrary (one
+  // long subtitle phrase, a couple of short words, or many) — so we repeat the
+  // items until the set is comfortably wide, then duplicate it for the seamless
+  // loop. Makes the carousel work for any text.
+  const MIN_CHIPS = 12
+  const set: string[] = []
+  while (set.length < MIN_CHIPS) set.push(...base)
+  const looped = [...set, ...set]
   return (
     <section className="w-full overflow-hidden border-y-4 border-ink bg-muted py-10">
       <div className="relative">

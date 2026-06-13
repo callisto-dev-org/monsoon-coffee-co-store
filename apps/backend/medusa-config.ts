@@ -98,6 +98,7 @@ module.exports = defineConfig({
     { resolve: "./src/modules/brew" },
     { resolve: "./src/modules/review" },
     { resolve: "./src/modules/coffee-profile" },
+    { resolve: "./src/modules/event-detail" },
     { resolve: "./src/modules/filter-category" },
     { resolve: "./src/modules/contact" },
     {

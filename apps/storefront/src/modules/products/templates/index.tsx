@@ -7,9 +7,11 @@ import { HttpTypes } from "@medusajs/types"
 import MonsoonProductInfo from "@modules/products/components/monsoon-product-info"
 import MonsoonProductCarousel from "@modules/products/components/monsoon-carousel"
 import MonsoonCoffeeSpec from "@modules/products/components/monsoon-coffee-spec"
+import MonsoonEventDetail from "@modules/products/components/monsoon-event-detail"
 import MonsoonLoader from "@modules/common/components/monsoon/loader"
 import { isBrewLabEnabledForProduct, listProductBrews } from "@lib/data/brews"
 import { getProductCoffeeProfile } from "@lib/data/coffee-profiles"
+import { getProductEventDetail } from "@lib/data/event-details"
 import { listProductReviews } from "@lib/data/reviews"
 
 const MonsoonBrewLab = dynamic(
@@ -54,23 +56,27 @@ const ProductTemplate = async ({
     return notFound()
   }
 
-  const highlightItems = [
-    "FRESHLY ROASTED",
-    "SMALL BATCH",
-    "DIRECT TRADE",
-    product.title?.toUpperCase() ?? "MONSOON BLEND",
-  ]
+  // Marquee copy is driven by the product's subtitle (the "secondary" field in
+  // the admin) — split on common separators so a subtitle like
+  // "Direct Trade, Wild Ember, Freshly Roasted" scrolls as separate chips.
+  // No subtitle → no copy → the carousel removes itself.
+  const highlightItems = ((product as { subtitle?: string | null }).subtitle ?? "")
+    .split(/[,.|•·/]+/)
+    .map((s) => s.trim().toUpperCase())
+    .filter(Boolean)
 
-  const [brews, reviewsData, coffeeProfile, brewLabEnabled] = await Promise.all([
-    listProductBrews(product.id),
-    listProductReviews(product.id),
-    getProductCoffeeProfile(product.id),
-    isBrewLabEnabledForProduct({
-      categories:
-        (product as { categories?: Array<{ id?: string; handle?: string }> })
-          .categories ?? null,
-    }),
-  ])
+  const [brews, reviewsData, coffeeProfile, brewLabEnabled, eventDetail] =
+    await Promise.all([
+      listProductBrews(product.id),
+      listProductReviews(product.id),
+      getProductCoffeeProfile(product.id),
+      isBrewLabEnabledForProduct({
+        categories:
+          (product as { categories?: Array<{ id?: string; handle?: string }> })
+            .categories ?? null,
+      }),
+      getProductEventDetail(product.id),
+    ])
 
   const productCategories =
     (product as {
@@ -102,6 +108,7 @@ const ProductTemplate = async ({
         coffeeProfile={coffeeProfile}
         isCoffeeBeans={isCoffeeBeans}
       />
+      {eventDetail && <MonsoonEventDetail event={eventDetail} />}
       <MonsoonProductCarousel items={highlightItems} />
       {coffeeProfile && !isCoffeeBeans && (
         <MonsoonCoffeeSpec profile={coffeeProfile} />

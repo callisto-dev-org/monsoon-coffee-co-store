@@ -365,34 +365,40 @@ export default function MonsoonProductInfo({
           </dl>
         )}
 
-        <div className="flex flex-col gap-4">
-          {(product.options ?? []).map((option) => (
-            <div key={option.id} className="flex flex-col gap-2">
-              <span className="text-sm font-semibold opacity-60 uppercase">
-                {option.title}
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {option.values?.map((v) => {
-                  const selected = options[option.id!] === v.value
-                  return (
-                    <button
-                      key={v.id}
-                      type="button"
-                      onClick={() => setOptionValue(option.id!, v.value)}
-                      className={`px-4 py-2 border-2 border-ink tracking-tight text-sm font-medium uppercase ${
-                        selected
-                          ? "bg-accent text-surface"
-                          : "bg-surface text-ink"
-                      }`}
-                    >
-                      {v.value}
-                    </button>
-                  )
-                })}
+        {/* Variant picker — only for products with real variants. A product
+            with a single Medusa default variant ("Default option") has nothing
+            to choose, so we hide the selector entirely (the lone variant is
+            preselected above for add-to-cart). */}
+        {(product.variants?.length ?? 0) > 1 && (
+          <div className="flex flex-col gap-4">
+            {(product.options ?? []).map((option) => (
+              <div key={option.id} className="flex flex-col gap-2">
+                <span className="text-sm font-semibold opacity-60 uppercase">
+                  {option.title}
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {option.values?.map((v) => {
+                    const selected = options[option.id!] === v.value
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => setOptionValue(option.id!, v.value)}
+                        className={`px-4 py-2 border-2 border-ink tracking-tight text-sm font-medium uppercase ${
+                          selected
+                            ? "bg-accent text-surface"
+                            : "bg-surface text-ink"
+                        }`}
+                      >
+                        {v.value}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {lineItem && inCartQty > 0 ? (
           <div className="mt-2 flex flex-col gap-2">
