@@ -220,7 +220,7 @@ export const EventEditor = ({ productId }: { productId: string }) => {
       <div className="flex items-center justify-between px-6 py-4">
         <div>
           <Text size="small" className="text-ui-fg-muted">
-            Venue, date, seats and what&apos;s in store for this event.
+            Venue, date, seats and what to expect at this event.
           </Text>
         </div>
         <div className="flex gap-2">
@@ -349,7 +349,7 @@ export const EventEditor = ({ productId }: { productId: string }) => {
 
           <div className="md:col-span-2">
             <div className="mb-1 flex items-center justify-between">
-              <Label>What&apos;s in store</Label>
+              <Label>What to expect</Label>
               <Button
                 variant="transparent"
                 size="small"

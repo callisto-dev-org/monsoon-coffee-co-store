@@ -11,6 +11,7 @@ import {
   deleteCoffeeProfileStep,
   type CoffeeProfileInput,
 } from "./steps/coffee-profile-steps"
+import { syncProfileFilterCategoriesStep } from "./steps/sync-profile-filter-categories-steps"
 
 export const upsertCoffeeProfileWorkflow = createWorkflow(
   "upsert-coffee-profile",
@@ -36,6 +37,15 @@ export const upsertCoffeeProfileWorkflow = createWorkflow(
     )
 
     createRemoteLinkStep(linkData)
+
+    // Mirror the profile's select-one / select-many label categories into
+    // storefront tagging (filter) categories, and tag the product with its
+    // own selected values. Idempotent and never throws.
+    const syncInput = transform({ result, input }, ({ result, input }) => ({
+      product_id: input.product_id,
+      profile: result.profile,
+    }))
+    syncProfileFilterCategoriesStep(syncInput)
 
     return new WorkflowResponse(result.profile)
   }

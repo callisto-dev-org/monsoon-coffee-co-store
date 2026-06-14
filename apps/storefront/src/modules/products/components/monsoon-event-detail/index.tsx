@@ -71,19 +71,20 @@ export default function MonsoonEventDetail({ event }: Props) {
         )}
 
         {highlights.length > 0 && (
-          <div className="mt-10">
-            <span className="text-lg font-bold uppercase tracking-tight text-ink sm:text-2xl">
-              What&apos;s in store
-            </span>
-            <ul className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="mt-12">
+            <h3 className="text-xl font-black uppercase tracking-tight text-ink sm:text-2xl">
+              What to expect
+            </h3>
+            <div className="mt-2 h-1 w-16 bg-accent" />
+            <ul className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
               {highlights.map((h, i) => (
                 <li
                   key={i}
-                  className="flex gap-3 border-2 border-ink bg-surface p-4 shadow-[4px_4px_0px_0px_var(--mc-ink)]"
+                  className="flex items-start gap-4 border-2 border-ink bg-surface p-5 shadow-[5px_5px_0px_0px_var(--mc-ink)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0px_0px_var(--mc-ink)]"
                 >
                   <span
                     aria-hidden
-                    className="mt-0.5 font-family-heading text-base font-black text-accent"
+                    className="shrink-0 font-family-heading text-lg font-black leading-6 text-accent"
                   >
                     {String(i + 1).padStart(2, "0")}
                   </span>
