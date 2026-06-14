@@ -401,7 +401,7 @@ export default function MonsoonProductInfo({
         {lineItem && inCartQty > 0 ? (
           <div className="mt-2 flex flex-col gap-2">
             <span className="text-xs font-bold uppercase tracking-[0.18em] text-accent">
-              In Your Bag
+              In Your Cart
             </span>
             <div className="flex items-stretch border-2 border-ink">
               <button
@@ -453,7 +453,7 @@ export default function MonsoonProductInfo({
               ? "Out of Stock"
               : isAdding
               ? "Adding..."
-              : "Add to Bag"}
+              : "Add to Cart"}
           </CTAButton>
         )}
 

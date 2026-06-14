@@ -31,7 +31,7 @@ export type ReceiptData = {
   placed?: string
   items: ReceiptItem[]
   total: number
-  shipping_address?: Record<string, unknown> | null
+  billing_address?: Record<string, unknown> | null
 }
 
 export function renderReceiptPdf(data: ReceiptData): Promise<Buffer> {
@@ -158,13 +158,13 @@ export function renderReceiptPdf(data: ReceiptData): Promise<Buffer> {
         .fontSize(17)
         .text(fmt(data.total), amtRight - 150, y, { width: 150 - 12, align: "right" })
 
-      // ── Shipping address ──
+      // ── Billing address ──
       y += 44
-      const addr = data.shipping_address
+      const addr = data.billing_address
       if (addr) {
         doc.rect(left, y, width, 2).fill(LINE)
         y += 14
-        doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(9).text("SHIPPING TO", left, y)
+        doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(9).text("BILLED TO", left, y)
         y += 15
         const lines = [
           [addr.first_name, addr.last_name].filter(Boolean).join(" "),

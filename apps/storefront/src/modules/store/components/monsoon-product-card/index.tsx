@@ -16,13 +16,10 @@ export default function MonsoonProductCard({ product }: ProductCardProps) {
     .filter(Boolean)
     .slice(0, 2)
     .join(" . ")
-  // Eyebrow falls back to the product's category name when there are no tags or
-  // subtitle to show.
+  // Eyebrow falls back to the product's category name when there are no tags
+  // to show. (Subtitle is intentionally never used here.)
   const categoryName = product.categories?.[0]?.name?.toUpperCase()
-  const notes =
-    product.subtitle ||
-    product.description?.replace(/\s+/g, " ").slice(0, 90) ||
-    ""
+  const notes = product.description?.replace(/\s+/g, " ").slice(0, 90) || ""
 
   return (
     <article className="group flex h-full w-full min-w-0 flex-col gap-3 font-family-heading transition-transform duration-300 hover:-translate-y-1 sm:gap-4">
@@ -46,10 +43,7 @@ export default function MonsoonProductCard({ product }: ProductCardProps) {
         </HighlightCard>
         <span className="flex min-w-0 flex-1 flex-col gap-1.5 py-1 sm:gap-2 sm:py-0">
           <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-accent sm:text-xs sm:tracking-widest">
-            {originProcess ||
-              product.subtitle?.toUpperCase() ||
-              categoryName ||
-              "SINGLE ORIGIN"}
+            {originProcess || categoryName || "SINGLE ORIGIN"}
           </span>
           <span className="line-clamp-2 min-w-0 min-h-[2.2em] text-sm font-bold uppercase leading-tight text-ink sm:min-h-[2.4em] sm:text-xl lg:text-2xl">
             {product.title}

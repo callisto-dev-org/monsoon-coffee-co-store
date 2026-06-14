@@ -68,12 +68,12 @@ export default function MonsoonReviews({
   const description = useMemo(() => {
     if (productSubtitle?.trim()) return productSubtitle.trim()
     if (summary.count > 0 && summary.average_rating >= 4.5) {
-      return `${productTitle} is one of our highest-rated roasts, praised for its consistency across brewing methods.`
+      return `${productTitle} is one of our highest-rated, loved for its consistency.`
     }
     if (summary.count > 0) {
-      return `What other drinkers are saying about ${productTitle}.`
+      return `What other customers are saying about ${productTitle}.`
     }
-    return `Notes from the people who've poured ${productTitle}. Yours could be the first.`
+    return `No reviews yet for ${productTitle}. Yours could be the first.`
   }, [productSubtitle, productTitle, summary])
 
   const imagePool = productImages.length ? productImages : [PLACEHOLDER]
@@ -86,7 +86,7 @@ export default function MonsoonReviews({
           <h2 className="text-4xl font-black leading-[0.95] tracking-tight uppercase text-ink lg:text-5xl">
             Customer
             <br />
-            Ledger
+            Stash
           </h2>
 
           <div className="flex items-start gap-3">

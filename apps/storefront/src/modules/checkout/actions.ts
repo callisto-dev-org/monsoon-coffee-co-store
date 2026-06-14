@@ -3,6 +3,7 @@
 import { revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
+import { HttpTypes } from "@medusajs/types"
 
 import { getCacheTag, getCartId } from "@lib/data/cookies"
 import {
@@ -10,6 +11,7 @@ import {
   initiatePaymentSession,
   placeOrder,
   setShippingMethod,
+  setShippingMethods,
   updateCart,
 } from "@lib/data/cart"
 
@@ -31,13 +33,23 @@ type AddressFields = {
   province?: string
   country_code: string
   phone: string
-  email: string
+  email?: string
 }
 
-function readAddressFields(formData: FormData): {
+// Reads one address from the form. `prefix` namespaces the inputs (the separate
+// shipping address uses `ship_` so it doesn't collide with the billing one);
+// error keys are returned with the same prefix so the form can highlight the
+// right field. Email is only part of the billing address (the invoice email).
+function readAddressFields(
+  formData: FormData,
+  opts: { prefix?: string; withEmail?: boolean } = {}
+): {
   values: AddressFields
   errors: Record<string, string>
 } {
+  const prefix = opts.prefix ?? ""
+  const withEmail = opts.withEmail ?? false
+
   const required = [
     "first_name",
     "last_name",
@@ -46,51 +58,80 @@ function readAddressFields(formData: FormData): {
     "postal_code",
     "country_code",
     "phone",
-    "email",
-  ] as const
+  ]
+  if (withEmail) required.push("email")
 
   const errors: Record<string, string> = {}
   const values = {} as AddressFields
+  const get = (field: string) =>
+    (formData.get(prefix + field) as string | null)?.trim() ?? ""
 
   for (const field of required) {
-    const value = (formData.get(field) as string | null)?.trim() ?? ""
-    if (!value) errors[field] = "Required"
+    const value = get(field)
+    if (!value) errors[prefix + field] = "Required"
     ;(values as Record<string, string>)[field] = value
   }
 
-  values.address_2 = (formData.get("address_2") as string | null)?.trim() ?? ""
-  values.province = (formData.get("province") as string | null)?.trim() ?? ""
+  values.address_2 = get("address_2")
+  values.province = get("province")
 
-  if (values.email && !/^\S+@\S+\.\S+$/.test(values.email)) {
-    errors.email = "Enter a valid email"
+  if (withEmail && values.email && !/^\S+@\S+\.\S+$/.test(values.email)) {
+    errors[prefix + "email"] = "Enter a valid email"
   }
   if (values.postal_code && !/^\d+$/.test(values.postal_code)) {
-    errors.postal_code = "Numbers only"
+    errors[prefix + "postal_code"] = "Numbers only"
   }
   if (values.phone && !/^[0-9+\-\s()]{6,}$/.test(values.phone)) {
-    errors.phone = "Enter a valid phone"
+    errors[prefix + "phone"] = "Enter a valid phone"
   }
 
   return { values, errors }
 }
 
+const toAddressPayload = (v: AddressFields) => ({
+  first_name: v.first_name,
+  last_name: v.last_name,
+  address_1: v.address_1,
+  address_2: v.address_2 || undefined,
+  city: v.city,
+  postal_code: v.postal_code,
+  province: v.province || undefined,
+  country_code: v.country_code.toLowerCase(),
+  phone: v.phone,
+})
+
 export type CheckoutFormState = {
   errors: Record<string, string>
   message: string | null
   values?: Partial<AddressFields>
+  shipValues?: Partial<AddressFields>
 }
 
 export async function saveCheckoutAddress(
   _prev: CheckoutFormState,
   formData: FormData
 ): Promise<CheckoutFormState> {
-  const { values, errors } = readAddressFields(formData)
+  // The primary fields are the BILLING address (this is what the invoice email
+  // shows). The shipping address defaults to it; when the customer unchecks
+  // "shipping same as billing" we collect a separate shipping address.
+  const { values, errors } = readAddressFields(formData, { withEmail: true })
 
-  if (Object.keys(errors).length) {
+  const shipSameAsBilling = formData.get("ship_same_as_billing") === "on"
+  let shipValues: AddressFields = values
+  let shipErrors: Record<string, string> = {}
+  if (!shipSameAsBilling) {
+    const ship = readAddressFields(formData, { prefix: "ship_" })
+    shipValues = ship.values
+    shipErrors = ship.errors
+  }
+
+  const allErrors = { ...errors, ...shipErrors }
+  if (Object.keys(allErrors).length) {
     return {
-      errors,
+      errors: allErrors,
       message: "Please fix the highlighted fields.",
       values,
+      shipValues: shipSameAsBilling ? undefined : shipValues,
     }
   }
 
@@ -99,43 +140,26 @@ export async function saveCheckoutAddress(
     if (!cartId) {
       return {
         errors: {},
-        message: "Your bag has expired. Please add an item again.",
+        message: "Your cart has expired. Please add an item again.",
       }
     }
 
-    const sameAsBilling = formData.get("same_as_billing") !== "off"
-    const shippingAddress = {
-      first_name: values.first_name,
-      last_name: values.last_name,
-      address_1: values.address_1,
-      address_2: values.address_2 || undefined,
-      city: values.city,
-      postal_code: values.postal_code,
-      province: values.province || undefined,
-      country_code: values.country_code.toLowerCase(),
-      phone: values.phone,
-    }
+    const billingAddress = toAddressPayload(values)
+    const shippingAddress = shipSameAsBilling
+      ? billingAddress
+      : toAddressPayload(shipValues)
 
     await updateCart({
       email: values.email,
       shipping_address: shippingAddress,
-      billing_address: sameAsBilling ? shippingAddress : shippingAddress,
+      billing_address: billingAddress,
     })
 
     const saveAsDefault = formData.get("save_as_default_shipping") === "on"
     if (saveAsDefault) {
-      // Best-effort: failures here shouldn't break checkout.
-      await upsertDefaultShippingAddress({
-        first_name: values.first_name,
-        last_name: values.last_name,
-        address_1: values.address_1,
-        address_2: values.address_2 || undefined,
-        city: values.city,
-        postal_code: values.postal_code,
-        province: values.province || undefined,
-        country_code: shippingAddress.country_code,
-        phone: values.phone,
-      })
+      // Best-effort: failures here shouldn't break checkout. Save the actual
+      // shipping (delivery) address as the default.
+      await upsertDefaultShippingAddress(toAddressPayload(shipValues))
     }
 
     // Best-effort auto-select shipping so the next step doesn't have to
@@ -175,7 +199,7 @@ export async function selectShippingMethod(formData: FormData) {
 
   const cartId = await getCartId()
   if (!cartId) {
-    throw new Error("Your bag has expired. Please add an item again.")
+    throw new Error("Your cart has expired. Please add an item again.")
   }
 
   await setShippingMethod({ cartId, shippingMethodId: shippingOptionId })
@@ -239,6 +263,9 @@ export async function placeRazorpayOrder(input: {
   revalidateTag(cacheTag)
 
   try {
+    // Safety net: a mixed cart (coffee + ticket) needs a shipping method per
+    // shipping profile, or completeCart rejects it. Fill any gaps first.
+    await ensureShippingSelected().catch(() => null)
     const cartRes = await completeCart(input.cartId)
     if (cartRes?.type === "order") {
       const countryCode =
@@ -279,17 +306,105 @@ export async function ensureRazorpaySession() {
   return null
 }
 
+// Resolve the shipping profiles the cart's items actually REQUIRE. The store
+// `/store/shipping-options` endpoint returns every store option (all profiles),
+// not just the cart's — so we can't infer requirements from the option list.
+// We read it from each line item's product → shipping_profile link instead.
+async function getRequiredShippingProfiles(
+  cartId: string
+): Promise<Set<string>> {
+  const detailed = await retrieveCart(
+    cartId,
+    "id,items.id,items.product.shipping_profile.id",
+    { noCache: true }
+  ).catch(() => null)
+
+  const required = new Set<string>()
+  for (const item of detailed?.items ?? []) {
+    const profileId = (
+      item as unknown as {
+        product?: { shipping_profile?: { id?: string } | null } | null
+      }
+    ).product?.shipping_profile?.id
+    if (profileId) required.add(profileId)
+  }
+  return required
+}
+
 export async function ensureShippingSelected() {
   const cart = await retrieveCart(undefined, undefined, { noCache: true })
   if (!cart) return null
 
-  if (cart.shipping_methods?.length) return cart.shipping_methods[0]
-
   const options = await listCartShippingMethods(cart.id)
   if (!options?.length) return null
 
-  // Auto-pick the cheapest flat-rate option so the checkout can complete
-  const flatRate = options.find((o) => o.price_type === "flat") ?? options[0]
-  await setShippingMethod({ cartId: cart.id, shippingMethodId: flatRate.id })
-  return flatRate
+  // A cart's items can span MULTIPLE shipping profiles (e.g. coffee on the
+  // Shipmozo profile + an event ticket on the "Digital Delivery" profile).
+  // Medusa requires exactly one shipping method PER required profile, or
+  // completing the cart fails with "items require shipping profiles that are not
+  // satisfied by the current shipping methods".
+  //
+  // CRITICAL: the core `addShippingMethodToCartWorkflow` REMOVES every existing
+  // shipping method before adding the ones passed in a call, and the built-in
+  // store endpoint only accepts a single option per request. Attaching profiles
+  // one at a time therefore wipes the previous profile's method, so a mixed cart
+  // can never have both satisfied that way. We instead pick one option per
+  // REQUIRED profile and attach them ALL in a single batch request.
+  const requiredProfiles = await getRequiredShippingProfiles(cart.id)
+
+  const profileByOption = new Map(
+    options.map((o) => [o.id, o.shipping_profile_id])
+  )
+
+  const optionsByProfile = new Map<
+    string,
+    HttpTypes.StoreCartShippingOption[]
+  >()
+  for (const o of options) {
+    const list = optionsByProfile.get(o.shipping_profile_id) ?? []
+    list.push(o)
+    optionsByProfile.set(o.shipping_profile_id, list)
+  }
+
+  // Scope to the cart's required profiles. If we couldn't resolve them (query
+  // failure), fall back to every offered profile so a normal single-profile
+  // cart still gets a method.
+  const targetProfiles = requiredProfiles.size
+    ? [...requiredProfiles]
+    : [...optionsByProfile.keys()]
+
+  // Already fully satisfied? Skip the round-trip (and avoid needlessly
+  // removing + re-adding methods). "Satisfied" = a method exists for every
+  // target profile and there are no stray methods for other profiles.
+  const coveredProfiles = new Set(
+    (cart.shipping_methods ?? [])
+      .map((m) =>
+        m.shipping_option_id
+          ? profileByOption.get(m.shipping_option_id)
+          : undefined
+      )
+      .filter((p): p is string => !!p)
+  )
+  const alreadySatisfied =
+    targetProfiles.length > 0 &&
+    targetProfiles.every((p) => coveredProfiles.has(p)) &&
+    (cart.shipping_methods?.length ?? 0) === targetProfiles.length
+  if (alreadySatisfied) return null
+
+  // Pick the cheapest flat-rate option for each target profile.
+  const pickedIds: string[] = []
+  for (const profileId of targetProfiles) {
+    const profileOptions = optionsByProfile.get(profileId)
+    if (!profileOptions?.length) continue
+
+    const flatRates = profileOptions
+      .filter((o) => o.price_type === "flat" && typeof o.amount === "number")
+      .sort((a, b) => (a.amount ?? 0) - (b.amount ?? 0))
+    const choice = flatRates[0] ?? profileOptions[0]
+    pickedIds.push(choice.id)
+  }
+  if (!pickedIds.length) return null
+
+  await setShippingMethods({ cartId: cart.id, optionIds: pickedIds })
+  return pickedIds
 }

@@ -14,7 +14,7 @@ export default function CheckoutLayout({
             className="font-family-heading text-xs font-bold uppercase tracking-[0.18em] underline underline-offset-4 hover:text-accent"
             data-testid="back-to-cart-link"
           >
-            ← Back to Bag
+            ← Back to Cart
           </LocalizedClientLink>
           <LocalizedClientLink
             href="/"

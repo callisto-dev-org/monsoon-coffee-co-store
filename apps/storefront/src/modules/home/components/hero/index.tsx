@@ -27,7 +27,7 @@ export default function Hero() {
         <span className="flex w-full flex-col gap-3 font-family-heading sm:w-auto sm:flex-row sm:gap-4">
           <LocalizedClientLink href="/store">
             <CTAButton className="w-full px-8 py-3 text-lg sm:w-auto sm:px-12 sm:py-4 sm:text-xl">
-              Shop The Ledger
+              Shop The Stash
             </CTAButton>
           </LocalizedClientLink>
           <LocalizedClientLink href="/store">

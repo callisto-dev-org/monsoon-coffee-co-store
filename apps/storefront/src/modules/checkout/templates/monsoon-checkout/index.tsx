@@ -84,7 +84,7 @@ export default async function MonsoonCheckout({
           <div className="flex min-w-0 flex-col gap-8 sm:gap-12">
             {/* Step 1: Address */}
             <section className="flex flex-col gap-5">
-              <StepHeader index={1} title="Shipping Address" done={hasAddress} />
+              <StepHeader index={1} title="Billing & Shipping" done={hasAddress} />
               <div className="border-2 border-ink bg-surface p-4 sm:p-6">
                 <CheckoutAddressStep
                   cart={cart}

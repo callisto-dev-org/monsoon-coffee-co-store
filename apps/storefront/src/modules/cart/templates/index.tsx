@@ -21,7 +21,7 @@ const CartTemplate = ({
       <main className="mx-auto w-full max-w-[88rem] overflow-x-clip px-5 pb-24 pt-10 sm:px-8 sm:pt-14 lg:px-12">
         <section className="border-b border-ink/40 pb-8">
           <h1 className="font-family-heading text-5xl sm:text-7xl lg:text-8xl font-black uppercase leading-[0.86] text-ink">
-            Shopping <br /> Bag
+            Shopping <br /> Cart
           </h1>
           <p className="mt-8 font-family-heading text-sm font-bold uppercase tracking-[0.2em] text-ink/80">
             Your stash is empty.
@@ -32,7 +32,7 @@ const CartTemplate = ({
             href="/store"
             className="inline-flex border-2 border-ink bg-ink px-6 py-3 font-family-heading text-sm font-bold uppercase tracking-[0.2em] text-surface hover:bg-accent transition-colors"
           >
-            Explore the Ledger
+            Explore the Stash
           </LocalizedClientLink>
         </div>
       </main>
@@ -46,7 +46,7 @@ const CartTemplate = ({
       <section className="border-b border-ink/40 pb-8">
         <h1 className="font-family-heading text-[clamp(2.75rem,11vw,8rem)] font-black uppercase leading-[0.86] tracking-[-0.02em] text-ink">
           Shopping <br className="hidden sm:inline" />
-          <span className="sm:hidden"> </span>Bag
+          <span className="sm:hidden"> </span>Cart
         </h1>
         <p className="mt-8 inline-flex items-center gap-4 font-family-heading text-sm font-bold uppercase tracking-[0.2em] text-ink/80">
           <span className="h-px w-12 bg-ink/70" />

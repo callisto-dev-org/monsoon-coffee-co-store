@@ -69,7 +69,7 @@ export default async function CurrentLedger({
     <section className="flex flex-col gap-8 overflow-x-clip px-5 py-14 sm:px-10 sm:py-16 lg:gap-12 lg:px-20 lg:py-20">
       <span className="flex w-full flex-col gap-4 border-b-4 border-ink pb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
         <span className="font-family-heading text-4xl font-bold uppercase leading-[0.9] sm:text-5xl lg:text-6xl">
-          Current <br /> Ledger
+          Current <br /> Stash
         </span>
         <LocalizedClientLink
           href="/store"

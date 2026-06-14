@@ -18,7 +18,7 @@ export default function CheckoutYourBag({ cart }: Props) {
   return (
     <aside className="h-fit border-2 border-ink bg-surface p-6 shadow-[8px_8px_0px_0px_var(--mc-ink)] lg:sticky lg:top-8">
       <h2 className="font-family-heading text-3xl font-black uppercase text-ink">
-        Your Bag
+        Your Cart
       </h2>
 
       <ul className="mt-4 flex flex-col gap-4 border-t border-ink/20 pt-4">
@@ -77,7 +77,7 @@ export default function CheckoutYourBag({ cart }: Props) {
         href="/cart"
         className="mt-6 inline-block font-family-heading text-xs font-bold uppercase tracking-[0.18em] underline underline-offset-4 text-ink/65 hover:text-ink"
       >
-        ← Edit Bag
+        ← Edit Cart
       </LocalizedClientLink>
     </aside>
   )

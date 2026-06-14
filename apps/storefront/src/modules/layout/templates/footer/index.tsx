@@ -4,7 +4,7 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 
 const SHOP_LINKS = [
   { label: "Shop All", href: "/store" },
-  { label: "Your Bag", href: "/cart" },
+  { label: "Your Cart", href: "/cart" },
   { label: "Account", href: "/account" },
 ]
 

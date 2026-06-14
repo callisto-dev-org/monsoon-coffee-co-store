@@ -165,7 +165,7 @@ export default function MonsoonHeader({
               aria-label="Cart"
             >
               <CartIcon className="h-6 w-fit" />
-              <span>Bag</span>
+              <span>Cart</span>
               {cartItemCount > 0 && (
                 <span className="absolute -right-3 -top-2 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[10px] font-bold text-surface">
                   {cartItemCount}

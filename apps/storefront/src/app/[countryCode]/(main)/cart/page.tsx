@@ -5,7 +5,7 @@ import { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Cart",
-  description: "Your shopping bag",
+  description: "Your shopping cart",
 }
 
 export default async function Cart(props: {

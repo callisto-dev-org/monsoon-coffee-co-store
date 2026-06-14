@@ -53,7 +53,7 @@ export default function MonsoonLogin({
         Welcome <br /> Back
       </h1>
       <p className="mt-6 font-family-base text-base text-ink/70">
-        Sign in to The Ledger to track orders, favorites, and member-only drops.
+        Sign in to The Stash to track orders, favorites, and member-only drops.
       </p>
 
       <form className="mt-8 flex flex-col gap-5" action={formAction}>
@@ -126,7 +126,7 @@ export default function MonsoonLogin({
               className="px-5 py-2 font-family-heading text-xs font-bold uppercase tracking-[0.12em] text-ink"
               data-testid="register-button"
             >
-              Join The Ledger
+              Join The Stash
             </OutlineButton>
           </LocalizedClientLink>
         ) : (
@@ -136,7 +136,7 @@ export default function MonsoonLogin({
             className="px-5 py-2 font-family-heading text-xs font-bold uppercase tracking-[0.12em] text-ink"
             data-testid="register-button"
           >
-            Join The Ledger
+            Join The Stash
           </OutlineButton>
         )}
       </div>

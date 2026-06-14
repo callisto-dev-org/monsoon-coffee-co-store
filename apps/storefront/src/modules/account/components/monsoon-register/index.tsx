@@ -53,7 +53,7 @@ export default function MonsoonRegister({ setCurrentView, loginHref }: Props) {
         New Member
       </p>
       <h1 className="mt-3 font-family-heading text-4xl sm:text-5xl font-black uppercase leading-[0.9] text-ink">
-        Join The <br /> Ledger
+        Join The <br /> Stash
       </h1>
       <p className="mt-6 font-family-base text-base text-ink/70">
         Create an account to track orders, save favorites, and access

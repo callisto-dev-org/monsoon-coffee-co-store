@@ -211,7 +211,7 @@ export default function MonsoonOtpLogin({
               className="px-5 py-2 font-family-heading text-xs font-bold uppercase tracking-[0.12em] text-ink"
               data-testid="register-button"
             >
-              Join The Ledger
+              Join The Stash
             </OutlineButton>
           </LocalizedClientLink>
         )}

@@ -118,7 +118,8 @@ export default async function orderPlacedEmail({
         currency_code: order.currency_code,
         total: receipt.total,
         items: receipt.items,
-        shipping_address: order.shipping_address,
+        // Invoice shows the billing address only.
+        billing_address: receipt.billing_address,
         // Public confirmation page so the link works for guests too (the
         // account order page is login-gated).
         order_url: storefrontUrl

@@ -67,7 +67,7 @@ const OrderDetailsTemplate: React.FC<OrderDetailsTemplateProps> = ({
             </h1>
             <p className="mt-4 max-w-xl font-family-base text-sm text-ink/65 sm:text-base">
               A live log of your beans on their way to you — from our roastery
-              ledger to your door.
+              stash to your door.
             </p>
             <a
               href={`/api/receipt/${order.id}`}

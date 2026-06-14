@@ -26,7 +26,7 @@ export default async function Orders() {
       <header>
         <div className="flex items-center justify-between gap-3 border-b-2 border-ink pb-3 font-family-heading text-[10px] font-bold uppercase tracking-[0.22em] text-ink/55">
           <span className="truncate">
-            Monsoon Coffee Co. · The Ledger
+            Monsoon Coffee Co. · The Stash
           </span>
           <LocalizedClientLink
             href="/account"
@@ -50,7 +50,7 @@ export default async function Orders() {
             <h1 className="mt-3 font-family-heading text-[clamp(2.5rem,9vw,5.5rem)] font-black uppercase leading-[0.88] tracking-[-0.02em] text-ink">
               Order
               <br />
-              <span className="text-accent">Ledger.</span>
+              <span className="text-accent">Stash.</span>
             </h1>
             <p className="mt-4 max-w-xl font-family-base text-sm text-ink/65 sm:text-base">
               A chronological record of every bag we&apos;ve sent your way.

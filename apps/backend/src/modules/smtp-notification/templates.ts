@@ -195,11 +195,11 @@ const registry: Record<string, TemplateFn> = {
 
     const subtotal = items.reduce((a, i) => a + lineAmount(i), 0)
 
-    const addr = d.shipping_address as Record<string, unknown> | undefined
+    const addr = d.billing_address as Record<string, unknown> | undefined
     const addrHtml = addr
       ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 4px">
            <tr><td style="border:2px solid ${LINE};background:${SURFACE};padding:16px 18px;font-family:${BODY};font-size:13px;line-height:1.6;color:${INK}">
-             <span style="display:block;font-family:${HEAD};font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${ACCENT};margin-bottom:8px">Shipping to</span>
+             <span style="display:block;font-family:${HEAD};font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${ACCENT};margin-bottom:8px">Billed to</span>
              ${esc(
                [addr.first_name, addr.last_name].filter(Boolean).join(" ")
              )}<br/>
@@ -301,6 +301,69 @@ const registry: Record<string, TemplateFn> = {
       d.tracking_url ? ` Track: ${d.tracking_url}` : ""
     }`,
   }),
+
+  "event-tickets": (d) => {
+    const tickets =
+      (d.tickets as Array<{
+        title?: string
+        code?: string
+        unit?: number
+      }>) ?? []
+
+    const rows = tickets
+      .map(
+        (t) => `<tr>
+          <td style="padding:14px 16px;border-top:1px solid ${LINE};font-family:${BODY};font-size:14px;color:${INK}">${esc(
+          t.title
+        )}${
+          t.unit ? ` <span style="color:${MUTED}">· #${esc(t.unit)}</span>` : ""
+        }</td>
+          <td align="right" style="padding:14px 16px;border-top:1px solid ${LINE};font-family:${HEAD};font-weight:800;font-size:15px;letter-spacing:0.08em;color:${ACCENT}">${esc(
+          t.code
+        )}</td>
+        </tr>`
+      )
+      .join("")
+
+    const table = `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid ${INK};margin:20px 0 6px">
+        <tr style="background:${INK}">
+          <td style="padding:12px 16px;font-family:${HEAD};font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${SURFACE}">Ticket</td>
+          <td align="right" style="padding:12px 16px;font-family:${HEAD};font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${SURFACE}">Code</td>
+        </tr>
+        ${rows}
+      </table>`
+
+    const multi = tickets.length > 1
+    return {
+      subject:
+        (d.subject as string) ??
+        `Your event ticket${multi ? "s" : ""} — #${esc(d.display_id)}`,
+      html: shell({
+        eyebrow: `Order #${esc(d.display_id)}`,
+        heading: multi ? "Your tickets" : "Your ticket",
+        preheader: `Your event ticket code${multi ? "s are" : " is"} inside.`,
+        bodyHtml:
+          para(
+            "You're in! Show the code below at the door — each code admits one. No printing needed; this email is your ticket."
+          ) +
+          table +
+          para(
+            multi
+              ? "Bought these for friends? Share one code per guest."
+              : "Keep this email safe — it's your entry pass.",
+            `font-size:13px;color:${MUTED}`
+          ),
+      }),
+      text:
+        `Your event ticket${multi ? "s" : ""} (order #${d.display_id}):\n` +
+        tickets
+          .map(
+            (t) => `- ${t.title}${t.unit ? ` #${t.unit}` : ""}: ${t.code}`
+          )
+          .join("\n"),
+    }
+  },
 
   "login-otp": (d) => ({
     subject: (d.subject as string) ?? `Your login code: ${esc(d.code)}`,

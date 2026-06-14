@@ -11,15 +11,38 @@ type Props = {
   customer: HttpTypes.StoreCustomer | null
 }
 
-function AddressSummary({
+// Compares the comparable fields of two addresses (case-insensitive) so we can
+// show "Same as billing" instead of repeating an identical block.
+function sameAddress(
+  a?: HttpTypes.StoreCartAddress | null,
+  b?: HttpTypes.StoreCartAddress | null
+): boolean {
+  if (!a || !b) return !a && !b
+  const norm = (v: unknown) => String(v ?? "").trim().toLowerCase()
+  return (
+    ["first_name", "last_name", "address_1", "address_2", "city", "province", "postal_code", "country_code", "phone"] as const
+  ).every(
+    (k) =>
+      norm((a as unknown as Record<string, unknown>)[k]) ===
+      norm((b as unknown as Record<string, unknown>)[k])
+  )
+}
+
+function AddressBlock({
+  title,
   address,
   email,
 }: {
+  title: string
   address: HttpTypes.StoreCartAddress
   email?: string | null
 }) {
   return (
     <dl className="flex flex-col gap-3 font-family-base text-sm text-ink/80 sm:text-base">
+      <p className="font-family-heading text-[10px] font-bold uppercase tracking-[0.22em] text-accent sm:text-xs">
+        {title}
+      </p>
+
       <div>
         <dt className="font-family-heading text-[10px] font-bold uppercase tracking-[0.18em] text-ink/45">
           Recipient
@@ -48,24 +71,23 @@ function AddressSummary({
         </dd>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {address.phone && (
-          <div>
-            <dt className="font-family-heading text-[10px] font-bold uppercase tracking-[0.18em] text-ink/45">
-              Phone
-            </dt>
-            <dd className="mt-1 font-mono tabular-nums">{address.phone}</dd>
-          </div>
-        )}
-        {email && (
-          <div className="min-w-0">
-            <dt className="font-family-heading text-[10px] font-bold uppercase tracking-[0.18em] text-ink/45">
-              Email
-            </dt>
-            <dd className="mt-1 break-all">{email}</dd>
-          </div>
-        )}
-      </div>
+      {address.phone && (
+        <div>
+          <dt className="font-family-heading text-[10px] font-bold uppercase tracking-[0.18em] text-ink/45">
+            Phone
+          </dt>
+          <dd className="mt-1 font-mono tabular-nums">{address.phone}</dd>
+        </div>
+      )}
+
+      {email && (
+        <div className="min-w-0">
+          <dt className="font-family-heading text-[10px] font-bold uppercase tracking-[0.18em] text-ink/45">
+            Email
+          </dt>
+          <dd className="mt-1 break-all">{email}</dd>
+        </div>
+      )}
     </dl>
   )
 }
@@ -76,6 +98,7 @@ export default function CheckoutAddressStep({
   customer,
 }: Props) {
   const ship = cart.shipping_address ?? null
+  const billing = cart.billing_address ?? null
   const hasAddress = !!ship?.address_1
   const [editing, setEditing] = useState(!hasAddress)
 
@@ -103,16 +126,20 @@ export default function CheckoutAddressStep({
             !!customer?.addresses?.some((a) => a.is_default_shipping)
           }
           addresses={customer?.addresses ?? []}
+          onSaved={() => setEditing(false)}
         />
       </div>
     )
   }
 
+  const billingAddress = billing ?? ship
+  const shippingSameAsBilling = sameAddress(billingAddress, ship)
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <div className="flex items-start justify-between gap-3 sm:items-center">
         <p className="font-family-heading text-[10px] font-bold uppercase tracking-[0.22em] text-accent sm:text-xs">
-          Delivering to
+          Billing & shipping
         </p>
         <button
           type="button"
@@ -124,7 +151,24 @@ export default function CheckoutAddressStep({
         </button>
       </div>
 
-      <AddressSummary address={ship!} email={cart.email ?? null} />
+      <div className="grid gap-6 sm:grid-cols-2 sm:gap-8">
+        <AddressBlock
+          title="Billing address"
+          address={billingAddress!}
+          email={cart.email ?? null}
+        />
+
+        {shippingSameAsBilling ? (
+          <dl className="flex flex-col gap-3 font-family-base text-sm text-ink/80 sm:text-base">
+            <p className="font-family-heading text-[10px] font-bold uppercase tracking-[0.22em] text-accent sm:text-xs">
+              Shipping address
+            </p>
+            <p className="text-ink/65">Same as billing address.</p>
+          </dl>
+        ) : (
+          <AddressBlock title="Shipping address" address={ship!} />
+        )}
+      </div>
     </div>
   )
 }

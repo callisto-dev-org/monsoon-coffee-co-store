@@ -267,6 +267,37 @@ export async function setShippingMethod({
     .catch(medusaError)
 }
 
+// Set ALL of a cart's shipping methods at once via the custom batch route.
+//
+// The built-in store endpoint accepts a single option and the underlying
+// workflow removes every existing shipping method before adding it — so adding
+// methods one profile at a time leaves only the last profile satisfied. A cart
+// spanning multiple shipping profiles (e.g. coffee + event ticket) must have
+// every profile's method attached in a single request, which this does.
+export async function setShippingMethods({
+  cartId,
+  optionIds,
+}: {
+  cartId: string
+  optionIds: string[]
+}) {
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  return sdk.client
+    .fetch(`/store/carts/${cartId}/shipping-methods-batch`, {
+      method: "POST",
+      body: { option_ids: optionIds },
+      headers,
+    })
+    .then(async () => {
+      const cartCacheTag = await getCacheTag("carts")
+      revalidateTag(cartCacheTag)
+    })
+    .catch(medusaError)
+}
+
 export async function initiatePaymentSession(
   cart: HttpTypes.StoreCart,
   data: HttpTypes.StoreInitializePaymentSession

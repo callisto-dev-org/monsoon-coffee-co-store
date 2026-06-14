@@ -29,7 +29,7 @@ export default function MonsoonAccountSettings({ customer, hasPassword }: Props)
           href="/account"
           className="mt-4 inline-flex font-family-heading text-[11px] font-bold uppercase tracking-[0.16em] text-ink/55 underline underline-offset-4 hover:text-ink"
         >
-          ← Back to the Ledger
+          ← Back to the Stash
         </LocalizedClientLink>
       </section>
 

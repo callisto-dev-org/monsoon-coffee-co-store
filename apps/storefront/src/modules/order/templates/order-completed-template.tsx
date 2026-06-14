@@ -36,7 +36,7 @@ export default async function OrderCompletedTemplate({
             Thank You.
           </h1>
           <p className="mt-4 max-w-2xl font-family-base text-base text-ink/65 sm:text-lg">
-            Your order was placed successfully. The roaster has the ledger and
+            Your order was placed successfully. The roaster has the stash and
             we&apos;ll keep you posted on every step.
           </p>
           <a

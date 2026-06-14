@@ -31,7 +31,7 @@ export default function MonsoonCoffeeSpec({ profile }: Props) {
             Technical Sheet
           </span>
           <h2 className="font-family-heading text-4xl font-black uppercase leading-[0.95] tracking-tight text-ink sm:text-5xl">
-            The Ledger of This Lot
+            The Stash of This Lot
           </h2>
         </header>
 

@@ -298,7 +298,7 @@ const OrderOverview = ({ orders }: { orders: HttpTypes.StoreOrder[] }) => {
         data-testid="no-orders-container"
       >
         <p className="font-family-heading text-[10px] font-bold uppercase tracking-[0.22em] text-accent sm:text-xs">
-          The Ledger
+          The Stash
         </p>
         <h2 className="font-family-heading text-3xl font-black uppercase leading-[0.95] text-ink sm:text-5xl">
           Nothing brewing yet.
@@ -313,7 +313,7 @@ const OrderOverview = ({ orders }: { orders: HttpTypes.StoreOrder[] }) => {
             className="px-6 py-3 font-family-heading text-sm font-bold uppercase tracking-[0.12em] sm:px-8 sm:py-4 sm:text-base"
             data-testid="continue-shopping-button"
           >
-            Explore the Ledger →
+            Explore the Stash →
           </CTAButton>
         </LocalizedClientLink>
       </div>

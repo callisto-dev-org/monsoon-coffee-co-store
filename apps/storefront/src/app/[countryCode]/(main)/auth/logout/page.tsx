@@ -26,7 +26,7 @@ export default async function LogoutPage(props: {
           You&apos;re <br /> Signed Out
         </h1>
         <p className="mt-6 font-family-base text-base text-ink/70">
-          Your ledger is locked. Sign in again whenever you&apos;re ready.
+          Your stash is locked. Sign in again whenever you&apos;re ready.
         </p>
         <div className="mt-8 flex gap-4">
           <LocalizedClientLink href="/auth/login">
@@ -51,7 +51,7 @@ export default async function LogoutPage(props: {
         Sign Out
       </p>
       <h1 className="mt-3 font-family-heading text-4xl sm:text-5xl font-black uppercase leading-[0.9] text-ink">
-        Close The <br /> Ledger
+        Close The <br /> Stash
       </h1>
       <p className="mt-6 font-family-base text-base text-ink/70">
         Sign out of {customer.email}. You can sign back in at any time.

@@ -32,7 +32,7 @@ function MemberHero({ customer }: { customer: HttpTypes.StoreCustomer }) {
             Member Account
           </p>
           <h1 className="mt-3 font-family-heading text-[clamp(2.5rem,9vw,7rem)] font-black uppercase leading-[0.88] tracking-[-0.02em] text-ink sm:mt-4">
-            THE ROASTER&apos;S <br /> LEDGER
+            THE ROASTER&apos;S <br /> STASH
           </h1>
         </div>
         <div className="font-family-heading lg:text-right">
@@ -346,7 +346,7 @@ function LatestBulletins({
             href="/store"
             className="inline-flex border-2 border-ink bg-ink px-5 py-3 font-family-heading text-xs font-bold uppercase tracking-[0.12em] text-surface hover:bg-accent hover:border-accent"
           >
-            Explore the Ledger →
+            Explore the Stash →
           </LocalizedClientLink>
         </div>
       )}
@@ -370,7 +370,7 @@ function AccountActions(_props: { countryCode: string }) {
             type="button"
             className="w-full bg-ink px-6 py-3 font-family-heading text-base font-bold uppercase tracking-[0.12em] sm:px-8 sm:py-4 sm:text-lg lg:text-xl md:w-auto"
           >
-            Sign Out of Ledger
+            Sign Out of Stash
           </CTAButton>
         </LocalizedClientLink>
       </div>

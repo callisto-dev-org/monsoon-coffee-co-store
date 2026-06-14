@@ -14,6 +14,7 @@ type QuantityLike =
 
 type OrderItem = {
   id?: string
+  product_id?: string | null
   // Depending on Medusa version, query.graph surfaces the quantity via a
   // mix of these — we coerce whichever comes through.
   quantity?: QuantityLike
@@ -128,6 +129,7 @@ export default async function autoFulfillShipmozo({
         "id",
         "fulfillment_status",
         "items.id",
+        "items.product_id",
         "items.quantity",
         "items.raw_quantity",
         "items.detail.quantity",
@@ -223,8 +225,52 @@ export default async function autoFulfillShipmozo({
     return
   }
 
+  // Scope to items whose product is on the Shipmozo option's shipping profile,
+  // so a mixed cart (coffee + digital event ticket) never pushes ticket items
+  // to Shipmozo. Ticket products live on a separate "Digital Delivery" profile
+  // fulfilled by the manual provider. If we can't resolve profiles (query
+  // error), fall back to including everything so a coffee order still ships.
+  const shipmozoProfileId = shipmozoOption.shipping_profile_id ?? null
+  const orderProductIds = Array.from(
+    new Set(
+      (order.items ?? [])
+        .map((it) => it.product_id)
+        .filter((id): id is string => !!id)
+    )
+  )
+  const profileByProduct = new Map<string, string | null>()
+  if (shipmozoProfileId && orderProductIds.length) {
+    try {
+      const { data: prods } = await query.graph({
+        entity: "product",
+        fields: ["id", "shipping_profile.id"],
+        filters: { id: orderProductIds },
+      })
+      for (const p of prods as Array<{
+        id: string
+        shipping_profile?: { id?: string | null } | null
+      }>) {
+        profileByProduct.set(p.id, p.shipping_profile?.id ?? null)
+      }
+    } catch (e) {
+      logger.warn(
+        `auto-fulfill-shipmozo: could not resolve product shipping profiles for order ${orderId} — ${
+          (e as Error).message
+        }; including all items.`
+      )
+    }
+  }
+
+  const belongsToShipmozoProfile = (it: OrderItem): boolean => {
+    // Fallback: with no profile map resolved, don't drop the item.
+    if (!shipmozoProfileId || profileByProduct.size === 0) return true
+    const prof = it.product_id ? profileByProduct.get(it.product_id) : undefined
+    return prof === shipmozoProfileId
+  }
+
   const items = (order.items ?? [])
     .filter((it): it is Required<Pick<OrderItem, "id">> & OrderItem => !!it?.id)
+    .filter(belongsToShipmozoProfile)
     .map((it) => ({
       id: it.id as string,
       quantity: pickQuantity(it),

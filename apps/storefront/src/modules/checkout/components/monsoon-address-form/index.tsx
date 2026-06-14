@@ -17,6 +17,9 @@ type Props = {
   isAuthenticated?: boolean
   hasDefaultShipping?: boolean
   addresses?: HttpTypes.StoreCustomerAddress[]
+  // Called after the address is saved successfully, so the parent can collapse
+  // back to the summary view without waiting on a full reload.
+  onSaved?: () => void
 }
 
 const initialState: CheckoutFormState = { errors: {}, message: null }
@@ -78,6 +81,34 @@ function Field({
 
 const MANUAL = "__manual__"
 
+const ADDRESS_KEYS = [
+  "first_name",
+  "last_name",
+  "address_1",
+  "address_2",
+  "city",
+  "province",
+  "postal_code",
+  "country_code",
+  "phone",
+] as const
+
+// Two addresses are "the same" when every comparable field matches
+// (case-insensitive, trimmed). Used to decide whether a saved cart already has a
+// distinct shipping address that should re-open the shipping fieldset.
+function addressesEqual(
+  a?: HttpTypes.StoreCartAddress | null,
+  b?: HttpTypes.StoreCartAddress | null
+): boolean {
+  if (!a || !b) return !a && !b
+  const norm = (v: unknown) => String(v ?? "").trim().toLowerCase()
+  return ADDRESS_KEYS.every(
+    (k) =>
+      norm((a as unknown as Record<string, unknown>)[k]) ===
+      norm((b as unknown as Record<string, unknown>)[k])
+  )
+}
+
 export default function MonsoonAddressForm({
   cart,
   region,
@@ -85,6 +116,7 @@ export default function MonsoonAddressForm({
   isAuthenticated = false,
   hasDefaultShipping = false,
   addresses = [],
+  onSaved,
 }: Props) {
   const router = useRouter()
   const [state, formAction, isPending] = useActionState(
@@ -92,7 +124,12 @@ export default function MonsoonAddressForm({
     initialState
   )
 
-  const ship = cart.shipping_address ?? null
+  // Primary fields are the billing address; the optional fieldset below is the
+  // shipping address. Legacy carts may only carry a shipping address — fall back
+  // to it so the billing fields still seed.
+  const billing = cart.billing_address ?? cart.shipping_address ?? null
+  const shipAddr = cart.shipping_address ?? null
+  const billingDiffersFromShipping = !addressesEqual(billing, shipAddr)
 
   // Limit picker to addresses available in the cart's region
   const regionCountryCodes = useMemo(
@@ -123,33 +160,44 @@ export default function MonsoonAddressForm({
   )
 
   // What seeds the form's defaultValues. Priority:
-  //   1. Cart's already-set shipping address (so edits don't wipe progress)
+  //   1. Cart's already-set billing address (so edits don't wipe progress)
   //   2. Customer's default shipping
   //   3. Empty / manual
   const initialSelectionId = useMemo(() => {
-    if (ship?.address_1) {
+    if (billing?.address_1) {
       const match = pickableAddresses.find(
         (a) =>
           a.address_1?.trim().toLowerCase() ===
-            ship.address_1?.trim().toLowerCase() &&
+            billing.address_1?.trim().toLowerCase() &&
           a.postal_code?.trim().toLowerCase() ===
-            ship.postal_code?.trim().toLowerCase()
+            billing.postal_code?.trim().toLowerCase()
       )
       return match?.id ?? MANUAL
     }
     return defaultAddress?.id ?? MANUAL
-  }, [ship, pickableAddresses, defaultAddress])
+  }, [billing, pickableAddresses, defaultAddress])
 
   const [selectedId, setSelectedId] = useState<string>(initialSelectionId)
 
-  // Resolve the seed address used to prefill the form fields
+  // Whether the shipping address is the same as the billing address entered
+  // above. When unchecked we reveal a separate shipping address fieldset.
+  // Defaults open when the saved cart already has a distinct shipping address,
+  // and re-opens on a server round-trip that returned distinct shipping values.
+  const [shipSameAsBilling, setShipSameAsBilling] = useState(
+    !billingDiffersFromShipping
+  )
+  useEffect(() => {
+    if (state.shipValues) setShipSameAsBilling(false)
+  }, [state.shipValues])
+
+  // Resolve the seed address used to prefill the billing fields
   const seed = useMemo<HttpTypes.StoreCartAddress | null>(() => {
     if (selectedId !== MANUAL) {
       const a = pickableAddresses.find((x) => x.id === selectedId)
       if (a) return a as unknown as HttpTypes.StoreCartAddress
     }
-    return ship
-  }, [selectedId, pickableAddresses, ship])
+    return billing
+  }, [selectedId, pickableAddresses, billing])
 
   // Hidden default-shipping checkbox is forced ON for "no default yet" users,
   // but we surface the manual control too.
@@ -205,6 +253,10 @@ export default function MonsoonAddressForm({
           )}
         </div>
       )}
+
+      <p className="font-family-heading text-xs font-bold uppercase tracking-[0.16em] text-accent">
+        Billing address
+      </p>
 
       {/* Form fields are keyed on selection so defaultValues re-seed on switch */}
       <div className="flex flex-col gap-5" key={`form-${selectedId}`}>
@@ -373,12 +425,140 @@ export default function MonsoonAddressForm({
       <label className="mt-1 flex items-start gap-2 font-family-heading text-[11px] font-bold uppercase leading-snug tracking-[0.14em] text-ink/70 sm:items-center sm:text-xs sm:tracking-widest">
         <input
           type="checkbox"
-          name="same_as_billing"
-          defaultChecked
+          name="ship_same_as_billing"
+          checked={shipSameAsBilling}
+          onChange={(e) => setShipSameAsBilling(e.target.checked)}
           className="mt-0.5 h-4 w-4 shrink-0 accent-accent sm:mt-0"
         />
-        <span className="min-w-0">Billing address same as shipping</span>
+        <span className="min-w-0">Shipping address same as billing</span>
       </label>
+
+      {!shipSameAsBilling && (
+        <div className="flex flex-col gap-5 border-2 border-ink/15 bg-ink/5 p-4">
+          <p className="font-family-heading text-xs font-bold uppercase tracking-[0.16em] text-accent">
+            Shipping address
+          </p>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field
+              name="ship_first_name"
+              label="First Name"
+              autoComplete="given-name"
+              defaultValue={
+                state.shipValues?.first_name ?? shipAddr?.first_name ?? ""
+              }
+              error={state.errors.ship_first_name}
+              required
+            />
+            <Field
+              name="ship_last_name"
+              label="Last Name"
+              autoComplete="family-name"
+              defaultValue={
+                state.shipValues?.last_name ?? shipAddr?.last_name ?? ""
+              }
+              error={state.errors.ship_last_name}
+              required
+            />
+          </div>
+
+          <Field
+            name="ship_address_1"
+            label="Address Line 1"
+            autoComplete="address-line1"
+            defaultValue={
+              state.shipValues?.address_1 ?? shipAddr?.address_1 ?? ""
+            }
+            error={state.errors.ship_address_1}
+            required
+          />
+          <Field
+            name="ship_address_2"
+            label="Address Line 2"
+            autoComplete="address-line2"
+            defaultValue={
+              state.shipValues?.address_2 ?? shipAddr?.address_2 ?? ""
+            }
+          />
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field
+              name="ship_city"
+              label="City"
+              autoComplete="address-level2"
+              defaultValue={state.shipValues?.city ?? shipAddr?.city ?? ""}
+              error={state.errors.ship_city}
+              required
+            />
+            <Field
+              name="ship_province"
+              label="State / Province"
+              autoComplete="address-level1"
+              defaultValue={
+                state.shipValues?.province ?? shipAddr?.province ?? ""
+              }
+            />
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field
+              name="ship_postal_code"
+              label="Postal Code"
+              inputMode="numeric"
+              autoComplete="postal-code"
+              defaultValue={
+                state.shipValues?.postal_code ?? shipAddr?.postal_code ?? ""
+              }
+              error={state.errors.ship_postal_code}
+              required
+              numericOnly
+            />
+            <label className="grid gap-2">
+              <span className="font-family-heading text-xs font-bold uppercase tracking-widest text-ink/70">
+                Country <span className="text-red-700">*</span>
+              </span>
+              <select
+                name="ship_country_code"
+                required
+                defaultValue={
+                  state.shipValues?.country_code ??
+                  shipAddr?.country_code?.toUpperCase() ??
+                  region.countries?.[0]?.iso_2 ??
+                  ""
+                }
+                className={`h-12 w-full min-w-0 border-2 ${
+                  state.errors.ship_country_code
+                    ? "border-red-700"
+                    : "border-ink"
+                } bg-surface px-4 font-family-base text-ink focus:outline-none`}
+              >
+                {region.countries?.map((c) => (
+                  <option key={c.iso_2} value={c.iso_2?.toUpperCase()}>
+                    {c.display_name ?? c.name}
+                  </option>
+                ))}
+              </select>
+              {state.errors.ship_country_code && (
+                <span className="text-[10px] font-bold uppercase tracking-widest text-red-700">
+                  {state.errors.ship_country_code}
+                </span>
+              )}
+            </label>
+          </div>
+
+          <Field
+            name="ship_phone"
+            label="Phone"
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel"
+            defaultValue={state.shipValues?.phone ?? shipAddr?.phone ?? ""}
+            error={state.errors.ship_phone}
+            required
+            numericOnly
+          />
+        </div>
+      )}
 
       {isAuthenticated && (
         <label className="flex items-start gap-2 font-family-heading text-[11px] font-bold uppercase leading-snug tracking-[0.14em] text-ink/70 sm:items-center sm:text-xs sm:tracking-widest">
@@ -413,7 +593,7 @@ export default function MonsoonAddressForm({
           ? "Saving…"
           : selectedId !== MANUAL && seed
           ? "Use this address"
-          : ship?.address_1
+          : billing?.address_1
           ? "Update address"
           : "Save address"}
       </OutlineButton>
@@ -421,7 +601,12 @@ export default function MonsoonAddressForm({
       <RefreshOnSuccess
         state={state}
         isPending={isPending}
-        onRefresh={() => router.refresh()}
+        onRefresh={() => {
+          // Collapse to the summary first (instant), then revalidate the cart
+          // so the summary shows the freshly saved addresses.
+          onSaved?.()
+          router.refresh()
+        }}
       />
     </form>
   )

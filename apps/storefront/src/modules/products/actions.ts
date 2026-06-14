@@ -15,7 +15,7 @@ function toMessage(e: unknown) {
     ? e.message
     : typeof e === "string"
     ? e
-    : "We couldn't update your bag. Please try again."
+    : "We couldn't update your cart. Please try again."
 }
 
 export async function addToCartAction(input: {

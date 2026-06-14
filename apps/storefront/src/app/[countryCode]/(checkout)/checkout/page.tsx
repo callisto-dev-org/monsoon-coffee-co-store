@@ -91,10 +91,13 @@ export default async function CheckoutPage(props: {
 
   const hasAddress = !!cart.shipping_address?.address_1
 
-  // Auto-pick a shipping method as soon as we have an address — the
-  // checkout no longer asks the customer to choose one. ensureShippingSelected
-  // is a no-op when a method is already attached.
-  if (hasAddress && !cart.shipping_methods?.length) {
+  // Auto-pick shipping as soon as we have an address — the checkout no longer
+  // asks the customer to choose one. We run this whenever an address exists
+  // (not only when zero methods are attached): a mixed cart spans multiple
+  // shipping profiles, and a method may already cover one profile while another
+  // is still unsatisfied. ensureShippingSelected only adds methods for the
+  // profiles still missing one, so it's a safe no-op once everything is covered.
+  if (hasAddress) {
     try {
       const options = await listCartShippingMethods(cart.id).catch(() => null)
       if (options?.length) {

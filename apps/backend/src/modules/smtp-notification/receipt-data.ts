@@ -48,10 +48,19 @@ export type ReceiptOrder = {
     original_order_total?: BigNumberish
   } | null
   shipping_address?: Record<string, unknown> | null
+  billing_address?: Record<string, unknown> | null
 }
 
 // Relations needed to build a receipt from `orderModule.retrieveOrder`.
-export const RECEIPT_RELATIONS = ["items", "summary", "shipping_address"]
+// `shipping_address` is still fetched for the country-code fallback used by the
+// email subscriber; the receipt itself shows the BILLING address (it's an
+// invoice), so `billing_address` is what gets mapped onto the receipt below.
+export const RECEIPT_RELATIONS = [
+  "items",
+  "summary",
+  "shipping_address",
+  "billing_address",
+]
 
 // True once line items carry real quantity + price (used to ride out the
 // `order.placed` timing race where the first read can be all zeros).
@@ -87,7 +96,9 @@ export function mapOrderToReceiptData(order: ReceiptOrder): ReceiptData {
     placed,
     items,
     total,
-    shipping_address: order.shipping_address,
+    // Invoice/receipt shows the billing address. Fall back to the shipping
+    // address for legacy orders that never recorded a distinct billing one.
+    billing_address: order.billing_address ?? order.shipping_address,
   }
 }
 
