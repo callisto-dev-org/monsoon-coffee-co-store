@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation"
 
 import { addToCart, deleteLineItem, updateLineItem } from "@lib/data/cart"
+import { friendlyError } from "@lib/util/friendly-error"
 
 export type CartActionResult =
   | { ok: true }
@@ -10,12 +11,9 @@ export type CartActionResult =
 
 export type AddToCartResult = CartActionResult
 
+// Always surface shopper-friendly copy — never raw Medusa/inventory phrasing.
 function toMessage(e: unknown) {
-  return e instanceof Error
-    ? e.message
-    : typeof e === "string"
-    ? e
-    : "We couldn't update your cart. Please try again."
+  return friendlyError(e)
 }
 
 export async function addToCartAction(input: {

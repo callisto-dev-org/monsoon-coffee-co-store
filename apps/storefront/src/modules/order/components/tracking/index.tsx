@@ -1,19 +1,22 @@
 "use client"
 
 import { HttpTypes } from "@medusajs/types"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import QRCode from "qrcode"
 
 type TrackingProps = {
   order: HttpTypes.StoreOrder
 }
 
 type FulfillmentLike = {
+  provider_id?: string | null
   shipped_at?: string | Date | null
   delivered_at?: string | Date | null
   canceled_at?: string | Date | null
   packed_at?: string | Date | null
   created_at?: string | Date | null
   data?: Record<string, unknown> | null
+  metadata?: Record<string, unknown> | null
   labels?: Array<{
     tracking_number?: string | null
     tracking_url?: string | null
@@ -28,6 +31,8 @@ type ShipmozoData = {
   tracking_url?: string
   reference_id?: string
 }
+
+type TicketLike = { title?: string; code?: string; unit?: number }
 
 type StageKey =
   | "placed"
@@ -56,6 +61,10 @@ const STAGE_DEFS: Array<{ key: StageKey; label: string; caption: string }> = [
   { key: "delivered", label: "Delivered", caption: "At your door" },
 ]
 
+// `canceled_at` isn't on the StoreOrder SDK type but is returned at runtime.
+const orderCanceledAt = (order: HttpTypes.StoreOrder): string | Date | null =>
+  (order as { canceled_at?: string | Date | null }).canceled_at ?? null
+
 const toDate = (value: string | Date | null | undefined): Date | null => {
   if (!value) return null
   const d = typeof value === "string" ? new Date(value) : value
@@ -72,24 +81,24 @@ const formatDateShort = (d: Date | null) =>
       })
     : null
 
-const formatDateLong = (d: Date | null) =>
-  d
-    ? d.toLocaleString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      })
-    : null
-
 const titleCase = (str: string) =>
   str
     .split(/[_\s]+/)
     .filter(Boolean)
     .map((p) => p.slice(0, 1).toUpperCase() + p.slice(1).toLowerCase())
     .join(" ")
+
+// A fulfillment is "digital" (tickets / instant goods) when it isn't a Shipmozo
+// courier shipment: no shipmozo payload, and either the manual provider or the
+// digital metadata tag our subscriber stamps on it.
+const isDigitalFulfillment = (f?: FulfillmentLike): boolean => {
+  if (!f) return false
+  if (f.data?.shipmozo) return false
+  const provider = String(f.provider_id ?? "").toLowerCase()
+  if (provider.includes("shipmozo")) return false
+  const metaType = String((f.metadata?.type as string | undefined) ?? "").toLowerCase()
+  return provider.includes("manual") || metaType.startsWith("digital")
+}
 
 const inferStageFromStatus = (raw: string | undefined): StageKey | null => {
   if (!raw) return null
@@ -164,10 +173,250 @@ const buildStages = (
   })
 }
 
+// ── Top-level: render one card per fulfillment ──────────────────────────────
 const Tracking = ({ order }: TrackingProps) => {
-  const fulfillment = (order.fulfillments?.[0] ?? undefined) as
-    | FulfillmentLike
-    | undefined
+  const fulfillments = (order.fulfillments ?? []) as FulfillmentLike[]
+
+  // No fulfillment yet — show a single pending courier-style card.
+  if (fulfillments.length === 0) {
+    return <ShipmentCard order={order} fulfillment={undefined} />
+  }
+
+  if (fulfillments.length === 1) {
+    const f = fulfillments[0]
+    return isDigitalFulfillment(f) ? (
+      <DigitalCard order={order} fulfillment={f} />
+    ) : (
+      <ShipmentCard order={order} fulfillment={f} />
+    )
+  }
+
+  // Multiple fulfillments (e.g. coffee shipped via courier + event tickets
+  // delivered digitally) — stack each with its own labelled header.
+  let shipmentNo = 0
+  const shipmentTotal = fulfillments.filter((f) => !isDigitalFulfillment(f)).length
+  return (
+    <div className="flex flex-col gap-9">
+      {fulfillments.map((f, i) => {
+        const digital = isDigitalFulfillment(f)
+        if (!digital) shipmentNo += 1
+        return (
+          <div
+            key={i}
+            className={
+              i > 0
+                ? "border-t-2 border-dashed border-ink/15 pt-9"
+                : undefined
+            }
+          >
+            <FulfillmentHeader
+              digital={digital}
+              index={digital ? 0 : shipmentNo}
+              total={shipmentTotal}
+            />
+            {digital ? (
+              <DigitalCard order={order} fulfillment={f} />
+            ) : (
+              <ShipmentCard order={order} fulfillment={f} />
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+const FulfillmentHeader = ({
+  digital,
+  index,
+  total,
+}: {
+  digital: boolean
+  index: number
+  total: number
+}) => (
+  <div className="mb-5 flex items-center gap-3">
+    <span className="font-family-heading text-[11px] font-bold uppercase tracking-[0.22em] text-ink/45">
+      {digital
+        ? "Digital · Tickets"
+        : total > 1
+        ? `Shipment ${index} of ${total}`
+        : "Shipment"}
+    </span>
+    <span className="h-px flex-1 bg-ink/10" />
+  </div>
+)
+
+// ── Digital fulfillment (event tickets / instant goods) ─────────────────────
+const DigitalCard = ({
+  order,
+  fulfillment,
+}: {
+  order: HttpTypes.StoreOrder
+  fulfillment: FulfillmentLike
+}) => {
+  const tickets =
+    (fulfillment.metadata?.tickets as TicketLike[] | undefined) ?? []
+  const isCanceled = !!fulfillment.canceled_at || !!orderCanceledAt(order)
+  const deliveredAt = toDate(
+    fulfillment.delivered_at ?? fulfillment.shipped_at ?? fulfillment.created_at
+  )
+  const isDelivered = !isCanceled && !!(fulfillment.delivered_at || fulfillment.shipped_at)
+  const hasTickets = tickets.length > 0
+
+  const [copied, setCopied] = useState<string | null>(null)
+  const copyCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopied(code)
+      window.setTimeout(() => setCopied(null), 1800)
+    } catch {
+      // noop — clipboard may be blocked
+    }
+  }
+
+  const headline = isCanceled
+    ? hasTickets
+      ? "Tickets cancelled."
+      : "Digital order cancelled."
+    : hasTickets
+    ? "Your tickets are ready."
+    : "Delivered to your inbox."
+
+  const caption = isCanceled
+    ? "We have refunded any captured payment for this order."
+    : hasTickets
+    ? "Show a code at the door — each admits one. A PDF copy was emailed to you."
+    : "Your digital order was delivered the moment it was placed."
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+        <div className="max-w-xl">
+          <div className="flex items-center gap-3">
+            <span className="inline-block h-2 w-2 rounded-full bg-accent" />
+            <span className="font-family-heading text-[11px] font-bold uppercase tracking-[0.22em] text-accent">
+              Bulletin · Digital
+            </span>
+          </div>
+          <h2 className="mt-3 font-family-heading text-[clamp(1.7rem,4vw,2.8rem)] font-black uppercase leading-[0.95] tracking-tight text-ink">
+            {headline}
+          </h2>
+          <p className="mt-3 font-family-base text-sm text-ink/65 sm:text-base">
+            {caption}
+          </p>
+        </div>
+
+        <div className="flex flex-col items-start gap-3 sm:items-end">
+          <span
+            className={`inline-flex items-center border-2 px-3 py-1 font-family-heading text-[11px] font-bold uppercase tracking-[0.14em] ${
+              isCanceled
+                ? "border-red-700 bg-red-50 text-red-700"
+                : "border-emerald-700 bg-emerald-50 text-emerald-800"
+            }`}
+            data-testid="tracking-status"
+          >
+            {isCanceled ? "Cancelled" : "Delivered"}
+          </span>
+          {!isCanceled && deliveredAt && (
+            <span className="font-family-base text-[11px] uppercase tracking-[0.14em] text-ink/45">
+              {formatDateShort(deliveredAt)}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {hasTickets && !isCanceled && (
+        <div className="border-t-2 border-dashed border-ink/15 pt-6">
+          <p className="font-family-heading text-[10px] font-bold uppercase tracking-[0.22em] text-ink/45">
+            {tickets.length === 1 ? "Your Ticket" : "Your Tickets"}
+          </p>
+          <p className="mt-2 font-family-base text-[13px] text-ink/55">
+            Show the QR or the code at the door — each admits one.
+          </p>
+          <ul className="mt-4 flex flex-col gap-3">
+            {tickets.map((t, i) => (
+              <li
+                key={`${t.code}-${i}`}
+                className="flex items-center gap-4 border-2 border-ink bg-surface p-4"
+              >
+                {t.code ? <TicketQr code={t.code} /> : null}
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <span className="font-family-base text-sm text-ink">
+                    {t.title ?? "Event ticket"}
+                    {tickets.length > 1 && t.unit ? (
+                      <span className="text-ink/45"> · #{t.unit}</span>
+                    ) : null}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => t.code && copyCode(t.code)}
+                    className="group inline-flex items-center gap-2 self-start font-mono text-sm font-medium tracking-wide text-accent hover:text-ink sm:text-base"
+                    title="Click to copy"
+                  >
+                    <span className="break-all">{t.code}</span>
+                    <span className="shrink-0 font-family-heading text-[10px] uppercase tracking-[0.18em] text-ink/35 group-hover:text-accent">
+                      {copied === t.code ? "Copied" : "Copy"}
+                    </span>
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Scannable QR for a ticket — rendered client-side so it works for guests and
+// logged-in buyers alike. Encodes a check-in URL (the admin Ticket Check-in page
+// with the code pre-filled) so ANY phone camera / QR app opens it directly; the
+// door scanner also accepts the bare code. Falls back to the bare code if the
+// backend URL isn't configured.
+const ticketCheckInUrl = (code: string): string => {
+  const base = (process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ?? "").replace(/\/$/, "")
+  return base ? `${base}/app/ticket-verify?code=${encodeURIComponent(code)}` : code
+}
+
+const TicketQr = ({ code }: { code: string }) => {
+  const [src, setSrc] = useState<string | null>(null)
+  useEffect(() => {
+    let active = true
+    QRCode.toDataURL(ticketCheckInUrl(code), {
+      margin: 1,
+      width: 240,
+      color: { dark: "#1A1C1C", light: "#FFFFFF" },
+    })
+      .then((url) => {
+        if (active) setSrc(url)
+      })
+      .catch(() => {
+        /* QR is a convenience — the code below still works */
+      })
+    return () => {
+      active = false
+    }
+  }, [code])
+
+  return (
+    <span className="flex h-[88px] w-[88px] shrink-0 items-center justify-center border-2 border-ink bg-white p-1">
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt={`Ticket QR for ${code}`} className="h-full w-full" />
+      ) : null}
+    </span>
+  )
+}
+
+// ── Physical courier shipment (Shipmozo) ────────────────────────────────────
+const ShipmentCard = ({
+  order,
+  fulfillment,
+}: {
+  order: HttpTypes.StoreOrder
+  fulfillment: FulfillmentLike | undefined
+}) => {
   const shipmozo =
     (fulfillment?.data?.shipmozo as ShipmozoData | undefined) ?? {}
   const label = fulfillment?.labels?.[0]
@@ -176,7 +425,7 @@ const Tracking = ({ order }: TrackingProps) => {
   const trackingUrl = label?.tracking_url ?? shipmozo.tracking_url ?? null
   const courier = shipmozo.courier ?? null
 
-  const isCanceled = !!fulfillment?.canceled_at || !!order.canceled_at
+  const isCanceled = !!fulfillment?.canceled_at || !!orderCanceledAt(order)
   const stages = buildStages(order, fulfillment, shipmozo)
   const currentStage = stages.find((s) => s.state === "current")
   const lastDone = [...stages].reverse().find((s) => s.state === "done")

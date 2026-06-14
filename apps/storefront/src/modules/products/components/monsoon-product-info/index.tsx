@@ -12,6 +12,7 @@ import {
   updateCartItemQuantityAction,
 } from "@modules/products/actions"
 import { getProductPrice } from "@lib/util/get-product-price"
+import { friendlyError } from "@lib/util/friendly-error"
 import { CTAButton } from "@modules/common/components/monsoon/buttons"
 import { HighlightCard } from "@modules/common/components/monsoon/highlight-card"
 import type { CoffeeProfile } from "@lib/data/coffee-profiles"
@@ -172,12 +173,8 @@ export default function MonsoonProductInfo({
       // confirm, and the in-page quantity stepper appears for this variant.
       router.refresh()
     } catch (e) {
-      const message =
-        e instanceof Error
-          ? e.message
-          : "Couldn't reach the store. Is the Medusa backend running on :9000?"
       console.error("Error adding to cart", e)
-      setCartError(message)
+      setCartError(friendlyError(e))
     } finally {
       setIsAdding(false)
     }
@@ -213,9 +210,7 @@ export default function MonsoonProductInfo({
         setIsBuying(false)
       }
     } catch (e) {
-      const message =
-        e instanceof Error ? e.message : "Could not start checkout."
-      setCartError(message)
+      setCartError(friendlyError(e))
       setIsBuying(false)
     }
   }

@@ -345,7 +345,13 @@ const registry: Record<string, TemplateFn> = {
         preheader: `Your event ticket code${multi ? "s are" : " is"} inside.`,
         bodyHtml:
           para(
-            "You're in! Show the code below at the door — each code admits one. No printing needed; this email is your ticket."
+            d.has_pdf
+              ? "You're in! Your ticket" +
+                  (multi ? "s are" : " is") +
+                  " attached to this email as a PDF — show it at the door (each code admits one). The code" +
+                  (multi ? "s are" : " is") +
+                  " also listed below."
+              : "You're in! Show the code below at the door — each code admits one. No printing needed; this email is your ticket."
           ) +
           table +
           para(

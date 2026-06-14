@@ -13,7 +13,7 @@ import {
   toast,
 } from "@medusajs/ui"
 import { useEffect, useState } from "react"
-import { adminFetch, slugifyKey, Field } from "./lib"
+import { adminFetch, slugifyKey, Field, uploadFiles } from "./lib"
 
 type ParamSchemaItem = { key: string; label: string; unit?: string }
 type StepItem = { name: string; description: string }
@@ -381,9 +381,25 @@ const BrewMethodModal = ({
 }) => {
   const params = state.param_schema ?? []
   const steps = state.steps ?? []
+  const [uploading, setUploading] = useState(false)
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setState({ ...state, [key]: value })
+  }
+
+  async function onPickImage(files: FileList | null) {
+    if (!files || files.length === 0) return
+    setUploading(true)
+    try {
+      const [url] = await uploadFiles(files)
+      if (url) update("image_url", url)
+    } catch (e) {
+      toast.error("Image upload failed", {
+        description: (e as Error).message,
+      })
+    } finally {
+      setUploading(false)
+    }
   }
 
   function updateParam(i: number, patch: Partial<ParamSchemaItem>) {
@@ -472,12 +488,53 @@ const BrewMethodModal = ({
                   placeholder="POUR-OVER"
                 />
               </Field>
-              <Field label="Image URL">
-                <Input
-                  value={state.image_url ?? ""}
-                  onChange={(e) => update("image_url", e.target.value)}
-                  placeholder="https://…"
-                />
+              <Field label="Image">
+                <div className="flex items-center gap-3">
+                  {state.image_url ? (
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border border-ui-border-base bg-ui-bg-subtle">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={state.image_url}
+                        alt="Brew method"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border border-dashed border-ui-border-base bg-ui-bg-subtle">
+                      <Text size="xsmall" className="text-ui-fg-muted">
+                        No image
+                      </Text>
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-1">
+                    <label className="inline-flex w-fit cursor-pointer items-center rounded-md border border-ui-border-base bg-ui-bg-base px-3 py-1.5 text-sm font-medium text-ui-fg-base transition-colors hover:bg-ui-bg-base-hover">
+                      {uploading
+                        ? "Uploading…"
+                        : state.image_url
+                        ? "Replace"
+                        : "Upload image"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploading}
+                        onChange={(e) => {
+                          onPickImage(e.target.files)
+                          e.target.value = ""
+                        }}
+                      />
+                    </label>
+                    {state.image_url && (
+                      <button
+                        type="button"
+                        onClick={() => update("image_url", "")}
+                        className="w-fit text-left text-xs text-ui-fg-muted hover:text-ui-fg-base"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
               </Field>
               <Field label="Summary" colSpan>
                 <Textarea
