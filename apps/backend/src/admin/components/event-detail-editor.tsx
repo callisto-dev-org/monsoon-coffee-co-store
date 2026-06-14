@@ -19,6 +19,8 @@ export type EventDetail = {
   city?: string | null
   date_label?: string | null
   event_date?: string | null
+  start_time?: string | null
+  end_time?: string | null
   seats_total?: number | null
   description?: string | null
   highlights?: string[] | null
@@ -72,6 +74,26 @@ function emptyToNull(v: string | null | undefined): string | null {
   return t ? t : null
 }
 
+// "10:00"/"12:30" -> "2h 30m". null when blank/malformed or end <= start
+// (we don't model overnight events), so it doubles as a validity hint.
+function timeRangeDuration(
+  start?: string | null,
+  end?: string | null
+): string | null {
+  const toMin = (t?: string | null) => {
+    const m = /^(\d{1,2}):(\d{2})$/.exec((t ?? "").trim())
+    return m ? Number(m[1]) * 60 + Number(m[2]) : null
+  }
+  const a = toMin(start)
+  const b = toMin(end)
+  if (a == null || b == null) return null
+  const diff = b - a
+  if (diff <= 0) return null
+  const h = Math.floor(diff / 60)
+  const m = diff % 60
+  return [h ? `${h}h` : "", m ? `${m}m` : ""].filter(Boolean).join(" ") || null
+}
+
 const ordinal = (n: number): string => {
   const s = ["th", "st", "nd", "rd"]
   const v = n % 100
@@ -116,6 +138,8 @@ export const EventEditor = ({ productId }: { productId: string }) => {
   const set = (patch: Partial<EventDetail>) =>
     setForm((prev) => ({ ...prev, ...patch }))
 
+  const durationHint = timeRangeDuration(form.start_time, form.end_time)
+
   async function load() {
     setLoading(true)
     try {
@@ -127,6 +151,8 @@ export const EventEditor = ({ productId }: { productId: string }) => {
         partner: d.partner ?? "",
         venue: d.venue ?? "",
         city: d.city ?? "",
+        start_time: d.start_time ?? "",
+        end_time: d.end_time ?? "",
         seats_total: d.seats_total ?? null,
         description: d.description ?? "",
       })
@@ -166,6 +192,8 @@ export const EventEditor = ({ productId }: { productId: string }) => {
             ? new Date(`${date}T00:00:00.000Z`).toISOString()
             : null,
           date_label: date ? formatDateLabel(date) : null,
+          start_time: emptyToNull(form.start_time),
+          end_time: emptyToNull(form.end_time),
           seats_total:
             form.seats_total === null || form.seats_total === undefined
               ? null
@@ -255,6 +283,25 @@ export const EventEditor = ({ productId }: { productId: string }) => {
               value={eventDate}
               onChange={(e) => setEventDate(e.target.value)}
             />
+          </Field>
+          <Field label="Start time">
+            <Input
+              type="time"
+              value={form.start_time ?? ""}
+              onChange={(e) => set({ start_time: e.target.value })}
+            />
+          </Field>
+          <Field label="End time (optional)">
+            <Input
+              type="time"
+              value={form.end_time ?? ""}
+              onChange={(e) => set({ end_time: e.target.value })}
+            />
+            {durationHint && (
+              <Text size="xsmall" className="mt-1 text-ui-fg-muted">
+                Duration: {durationHint}
+              </Text>
+            )}
           </Field>
           <Field label="Venue">
             <Input

@@ -20,6 +20,12 @@ const EventDetail = model.define("event_detail", {
   date_label: model.text().nullable(),
   event_date: model.dateTime().nullable(),
 
+  // Schedule as 24h "HH:MM" strings. `end_time` is optional — an event may
+  // have a start time only. When both are set the storefront shows a range
+  // and derives the duration.
+  start_time: model.text().nullable(),
+  end_time: model.text().nullable(),
+
   // Capacity, e.g. 25 ("Limited to 25 seats").
   seats_total: model.number().nullable(),
 
@@ -29,6 +35,8 @@ const EventDetail = model.define("event_detail", {
   // "What's in store" — ordered list of bullet strings.
   highlights: model.json().nullable(),
 
+  // Gallery image URLs (uploaded via the admin file module).
+  images: model.json().nullable(),
 })
 
 export default EventDetail

@@ -9,6 +9,8 @@ const EVENT_FIELDS = [
   "city",
   "date_label",
   "event_date",
+  "start_time",
+  "end_time",
   "seats_total",
   "description",
   "highlights",

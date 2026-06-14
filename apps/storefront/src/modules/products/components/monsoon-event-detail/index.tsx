@@ -7,6 +7,51 @@ type Props = {
   event: EventDetail
 }
 
+// "14:30" -> "2:30 PM". Returns null for blank or malformed input.
+function formatTime(hhmm?: string | null): string | null {
+  if (!hhmm) return null
+  const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm.trim())
+  if (!m) return null
+  let h = Number(m[1])
+  const min = Number(m[2])
+  if (h > 23 || min > 59) return null
+  const period = h < 12 ? "AM" : "PM"
+  h = h % 12 || 12
+  return `${h}:${String(min).padStart(2, "0")} ${period}`
+}
+
+// Minutes between two "HH:MM" times, or null if it doesn't make sense
+// (malformed, or end at/before start — we don't model overnight events).
+function durationMinutes(start: string, end: string): number | null {
+  const toMin = (t: string) => {
+    const m = /^(\d{1,2}):(\d{2})$/.exec(t.trim())
+    return m ? Number(m[1]) * 60 + Number(m[2]) : null
+  }
+  const a = toMin(start)
+  const b = toMin(end)
+  if (a == null || b == null) return null
+  const diff = b - a
+  return diff > 0 ? diff : null
+}
+
+// Builds "10:00 AM – 12:30 PM · 2h 30m". End and duration are optional, so a
+// start-only event renders just "10:00 AM".
+function formatSchedule(
+  start?: string | null,
+  end?: string | null
+): string | null {
+  const s = formatTime(start)
+  if (!s) return null
+  const e = formatTime(end)
+  if (!e) return s
+  const mins = durationMinutes(start!, end!)
+  if (mins == null) return `${s} – ${e}`
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  const dur = [h ? `${h}h` : "", m ? `${m}m` : ""].filter(Boolean).join(" ")
+  return dur ? `${s} – ${e} · ${dur}` : `${s} – ${e}`
+}
+
 // Brand-styled event sheet shown on an event product page — venue, date, seats,
 // a Markdown description, the "what's in store" rundown, and a photo gallery.
 export default function MonsoonEventDetail({ event }: Props) {
@@ -14,9 +59,12 @@ export default function MonsoonEventDetail({ event }: Props) {
   const highlights = (event.highlights ?? []).filter(Boolean)
   const images = (event.images ?? []).filter(Boolean)
 
+  const schedule = formatSchedule(event.start_time, event.end_time)
+
   const facts: Array<{ label: string; value: string }> = []
   if (location) facts.push({ label: "Location", value: location })
   if (event.date_label) facts.push({ label: "When", value: event.date_label })
+  if (schedule) facts.push({ label: "Time", value: schedule })
   if (event.partner) facts.push({ label: "With", value: event.partner })
   if (event.seats_total != null)
     facts.push({ label: "Seats", value: `Limited to ${event.seats_total}` })

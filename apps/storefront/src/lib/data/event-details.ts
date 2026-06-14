@@ -10,6 +10,8 @@ export type EventDetail = {
   city?: string | null
   date_label?: string | null
   event_date?: string | null
+  start_time?: string | null
+  end_time?: string | null
   seats_total?: number | null
   description?: string | null
   highlights?: string[] | null

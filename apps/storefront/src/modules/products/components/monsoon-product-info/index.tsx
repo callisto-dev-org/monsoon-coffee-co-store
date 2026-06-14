@@ -344,7 +344,7 @@ export default function MonsoonProductInfo({
         )}
 
         {beanSpecs && (
-          <dl className="mt-2 grid grid-cols-3 border-2 border-ink">
+          <dl className="mt-2 grid grid-cols-1 border-2 border-ink sm:grid-cols-3">
             {beanSpecs.notes && (
               <BeanSpecCell
                 label="Tasting Notes"
@@ -497,7 +497,9 @@ function BeanSpecCell({
   return (
     <div
       className={`flex flex-col gap-1 px-4 py-3 ${
-        withRightBorder ? "border-r-2 border-ink" : ""
+        withRightBorder
+          ? "border-b-2 border-ink sm:border-b-0 sm:border-r-2"
+          : ""
       }`}
     >
       <dt className="text-[10px] font-bold uppercase tracking-[0.18em] opacity-55">
