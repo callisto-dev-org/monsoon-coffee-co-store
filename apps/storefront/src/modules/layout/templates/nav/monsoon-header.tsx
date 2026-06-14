@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { usePathname, useParams } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { CartIcon } from "@modules/common/icons/monsoon/cart"
 
 type MonsoonHeaderProps = {
@@ -31,14 +32,22 @@ export default function MonsoonHeader({
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-ink/80 bg-surface p-6 text-ink">
-      <div className="mx-auto flex h-fit p-2 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+    <header className="border-b border-ink/80 bg-surface px-6 py-2 text-ink">
+      <div className="mx-auto flex h-fit w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <Link
             href={`${prefix}/`}
-            className="font-family-heading text-xl font-bold uppercase"
+            className="flex items-center"
+            aria-label="Monsoon Coffee Co. — home"
           >
-            Monsoon Coffee Co.
+            <Image
+              src="/monsoon/images/logo.png"
+              alt="Monsoon Coffee Co."
+              width={112}
+              height={112}
+              priority
+              className="h-16 w-auto sm:h-20"
+            />
           </Link>
         </div>
 
