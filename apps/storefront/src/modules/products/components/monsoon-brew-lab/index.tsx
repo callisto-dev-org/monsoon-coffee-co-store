@@ -334,17 +334,17 @@ function ProtocolDetail({ protocol }: { protocol: BrewProtocol }) {
       </div>
 
       {protocol.stats.length > 0 && (
-        <div className="grid grid-cols-5 border-b-4 border-ink bg-surface max-[780px]:grid-cols-2">
+        <div className="flex flex-wrap gap-3 border-b-4 border-ink bg-surface p-4 sm:gap-4 sm:p-6">
           {protocol.stats.map((stat) => (
             <div
               key={stat.label}
-              className="flex flex-col items-center justify-center border-r-4 border-ink px-4 py-6 text-center last:border-r-0 sm:py-8 max-[780px]:border-r-0 max-[780px]:border-t-4"
+              className="flex min-w-[120px] flex-1 flex-col items-center justify-center border-2 border-ink px-4 py-5 text-center sm:min-w-[150px] sm:py-6"
             >
               <span className="text-xs font-medium uppercase tracking-widest text-ink/60 sm:text-sm">
                 {stat.label}
               </span>
               <span
-                className={`mt-3 text-3xl font-black tracking-tight sm:text-4xl ${
+                className={`mt-2 text-2xl font-black tracking-tight sm:text-3xl ${
                   stat.accent ? "text-accent" : "text-ink"
                 }`}
               >

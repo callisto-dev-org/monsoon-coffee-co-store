@@ -238,18 +238,16 @@ export default function MonsoonProductInfo({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, isAuthenticated, product.variants])
 
-  // Show the product's tags as badges at the top. Coffee-Beans products
-  // lead with the roast level (e.g. "DARK ROAST") followed by tags, capped
-  // so the row doesn't grow unbounded.
+  // Show the product's tags as badges at the top, capped so the row doesn't
+  // grow unbounded. Roast/process now flow in as tags (auto-synced from the
+  // coffee profile), so we render tags only — no separate roast badge — to
+  // avoid showing the same value twice.
   const HERO_BADGE_LIMIT = 4
   const productTagValues = (product.tags ?? [])
     .map((t) => t.value)
     .filter((v): v is string => Boolean(v))
 
   const heroBadges: string[] = []
-  if (isCoffeeBeans && coffeeProfile?.roast_level) {
-    heroBadges.push(`${coffeeProfile.roast_level} Roast`)
-  }
   for (const tag of productTagValues) {
     if (heroBadges.length >= HERO_BADGE_LIMIT) break
     if (heroBadges.some((b) => b.toLowerCase() === tag.toLowerCase())) continue

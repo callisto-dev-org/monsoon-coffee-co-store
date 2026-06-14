@@ -74,26 +74,6 @@ function emptyToNull(v: string | null | undefined): string | null {
   return t ? t : null
 }
 
-// "10:00"/"12:30" -> "2h 30m". null when blank/malformed or end <= start
-// (we don't model overnight events), so it doubles as a validity hint.
-function timeRangeDuration(
-  start?: string | null,
-  end?: string | null
-): string | null {
-  const toMin = (t?: string | null) => {
-    const m = /^(\d{1,2}):(\d{2})$/.exec((t ?? "").trim())
-    return m ? Number(m[1]) * 60 + Number(m[2]) : null
-  }
-  const a = toMin(start)
-  const b = toMin(end)
-  if (a == null || b == null) return null
-  const diff = b - a
-  if (diff <= 0) return null
-  const h = Math.floor(diff / 60)
-  const m = diff % 60
-  return [h ? `${h}h` : "", m ? `${m}m` : ""].filter(Boolean).join(" ") || null
-}
-
 const ordinal = (n: number): string => {
   const s = ["th", "st", "nd", "rd"]
   const v = n % 100
@@ -137,8 +117,6 @@ export const EventEditor = ({ productId }: { productId: string }) => {
 
   const set = (patch: Partial<EventDetail>) =>
     setForm((prev) => ({ ...prev, ...patch }))
-
-  const durationHint = timeRangeDuration(form.start_time, form.end_time)
 
   async function load() {
     setLoading(true)
@@ -297,11 +275,6 @@ export const EventEditor = ({ productId }: { productId: string }) => {
               value={form.end_time ?? ""}
               onChange={(e) => set({ end_time: e.target.value })}
             />
-            {durationHint && (
-              <Text size="xsmall" className="mt-1 text-ui-fg-muted">
-                Duration: {durationHint}
-              </Text>
-            )}
           </Field>
           <Field label="Venue">
             <Input
@@ -412,8 +385,10 @@ export const EventEditor = ({ productId }: { productId: string }) => {
                 </Text>
               )}
               {highlights.map((h, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <Input
+                <div key={i} className="flex items-start gap-2">
+                  <Textarea
+                    className="min-h-[88px] flex-1"
+                    rows={3}
                     value={h}
                     onChange={(e) =>
                       setHighlights((arr) =>

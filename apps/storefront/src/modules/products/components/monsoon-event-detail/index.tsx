@@ -20,38 +20,6 @@ function formatTime(hhmm?: string | null): string | null {
   return `${h}:${String(min).padStart(2, "0")} ${period}`
 }
 
-// Minutes between two "HH:MM" times, or null if it doesn't make sense
-// (malformed, or end at/before start — we don't model overnight events).
-function durationMinutes(start: string, end: string): number | null {
-  const toMin = (t: string) => {
-    const m = /^(\d{1,2}):(\d{2})$/.exec(t.trim())
-    return m ? Number(m[1]) * 60 + Number(m[2]) : null
-  }
-  const a = toMin(start)
-  const b = toMin(end)
-  if (a == null || b == null) return null
-  const diff = b - a
-  return diff > 0 ? diff : null
-}
-
-// Builds "10:00 AM – 12:30 PM · 2h 30m". End and duration are optional, so a
-// start-only event renders just "10:00 AM".
-function formatSchedule(
-  start?: string | null,
-  end?: string | null
-): string | null {
-  const s = formatTime(start)
-  if (!s) return null
-  const e = formatTime(end)
-  if (!e) return s
-  const mins = durationMinutes(start!, end!)
-  if (mins == null) return `${s} – ${e}`
-  const h = Math.floor(mins / 60)
-  const m = mins % 60
-  const dur = [h ? `${h}h` : "", m ? `${m}m` : ""].filter(Boolean).join(" ")
-  return dur ? `${s} – ${e} · ${dur}` : `${s} – ${e}`
-}
-
 // Brand-styled event sheet shown on an event product page — venue, date, seats,
 // a Markdown description, the "what's in store" rundown, and a photo gallery.
 export default function MonsoonEventDetail({ event }: Props) {
@@ -59,15 +27,25 @@ export default function MonsoonEventDetail({ event }: Props) {
   const highlights = (event.highlights ?? []).filter(Boolean)
   const images = (event.images ?? []).filter(Boolean)
 
-  const schedule = formatSchedule(event.start_time, event.end_time)
+  const startTime = formatTime(event.start_time)
+  const endTime = formatTime(event.end_time)
+  const timeRange = startTime
+    ? endTime
+      ? `${startTime} – ${endTime}`
+      : startTime
+    : null
 
+  // Location is pushed last on purpose: with the flex-grow layout below, the
+  // items on a short final row stretch to fill the width, so keeping Location
+  // last lets it expand into the bigger box (and it usually has the longest
+  // value).
   const facts: Array<{ label: string; value: string }> = []
-  if (location) facts.push({ label: "Location", value: location })
   if (event.date_label) facts.push({ label: "When", value: event.date_label })
-  if (schedule) facts.push({ label: "Time", value: schedule })
+  if (timeRange) facts.push({ label: "Time", value: timeRange })
   if (event.partner) facts.push({ label: "With", value: event.partner })
   if (event.seats_total != null)
     facts.push({ label: "Seats", value: `Limited to ${event.seats_total}` })
+  if (location) facts.push({ label: "Location", value: location })
 
   const descriptionHtml = event.description
     ? (marked.parse(event.description, { async: false }) as string)
@@ -89,17 +67,18 @@ export default function MonsoonEventDetail({ event }: Props) {
           The Event
         </span>
 
-        {/* Facts — auto-fit so the row stays balanced no matter how many
-            fields are filled in. */}
+        {/* Facts — auto-fit so every field sits in a single row on large
+            screens and the columns drop off one at a time as the viewport
+            narrows (down to a single column on phones). Borders live on each
+            cell (not a bg-ink gap), so a partially filled row never leaves an
+            empty black cell behind. */}
         {facts.length > 0 && (
-          <dl
-            className="mt-6 grid gap-px overflow-hidden border-2 border-ink bg-ink"
-            style={{
-              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-            }}
-          >
+          <dl className="mt-6 flex flex-wrap border-l-2 border-t-2 border-ink">
             {facts.map((f) => (
-              <div key={f.label} className="flex flex-col gap-1 bg-surface p-5">
+              <div
+                key={f.label}
+                className="flex min-w-0 grow basis-[150px] flex-col gap-1 border-b-2 border-r-2 border-ink bg-surface p-5 sm:basis-[220px]"
+              >
                 <dt className="text-[11px] font-bold uppercase tracking-[0.18em] text-accent">
                   {f.label}
                 </dt>
@@ -113,7 +92,7 @@ export default function MonsoonEventDetail({ event }: Props) {
 
         {descriptionHtml && (
           <div
-            className="mt-8 max-w-3xl font-family-base text-base leading-7 text-ink/75 sm:text-lg [&_a]:text-accent [&_a]:underline [&_h2]:mt-6 [&_h2]:font-family-heading [&_h2]:text-xl [&_h2]:font-bold [&_h2]:uppercase [&_h2]:text-ink [&_h3]:mt-5 [&_h3]:font-bold [&_h3]:text-ink [&_li]:mb-1 [&_ol]:mb-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-4 [&_strong]:text-ink [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:pl-5"
+            className="mt-8 max-w-3xl [overflow-wrap:anywhere] font-family-base text-base leading-7 text-ink/75 sm:text-lg [&>*:first-child]:mt-0 [&_a]:text-accent [&_a]:underline [&_a]:[overflow-wrap:anywhere] [&_h1]:mt-10 [&_h1]:mb-4 [&_h1]:font-family-heading [&_h1]:text-2xl [&_h1]:font-black [&_h1]:uppercase [&_h1]:tracking-tight [&_h1]:text-ink [&_h1:not(:empty)]:after:mt-3 [&_h1:not(:empty)]:after:block [&_h1:not(:empty)]:after:h-1 [&_h1:not(:empty)]:after:w-20 [&_h1:not(:empty)]:after:bg-accent [&_h1:not(:empty)]:after:content-[''] [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:font-family-heading [&_h2]:text-xl [&_h2]:font-bold [&_h2]:uppercase [&_h2]:tracking-tight [&_h2]:text-ink [&_h2:not(:empty)]:after:mt-3 [&_h2:not(:empty)]:after:block [&_h2:not(:empty)]:after:h-1 [&_h2:not(:empty)]:after:w-16 [&_h2:not(:empty)]:after:bg-accent [&_h2:not(:empty)]:after:content-[''] [&_h3]:mt-8 [&_h3]:mb-3 [&_h3]:font-family-heading [&_h3]:font-bold [&_h3]:uppercase [&_h3]:tracking-tight [&_h3]:text-ink [&_h3:not(:empty)]:after:mt-2 [&_h3:not(:empty)]:after:block [&_h3:not(:empty)]:after:h-1 [&_h3:not(:empty)]:after:w-12 [&_h3:not(:empty)]:after:bg-accent [&_h3:not(:empty)]:after:content-[''] [&_li]:mb-2 [&_ol]:mb-6 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:marker:text-ink/50 [&_p]:mb-5 [&_p:last-child]:mb-0 [&_strong]:text-ink [&_ul]:mb-6 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:marker:text-accent"
             dangerouslySetInnerHTML={{ __html: descriptionHtml }}
           />
         )}
@@ -136,7 +115,7 @@ export default function MonsoonEventDetail({ event }: Props) {
                   >
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span className="font-family-base text-sm leading-6 text-ink/80 sm:text-base">
+                  <span className="min-w-0 [overflow-wrap:anywhere] font-family-base text-sm leading-6 text-ink/80 sm:text-base">
                     {h}
                   </span>
                 </li>
