@@ -3,14 +3,13 @@
 import { useState, useTransition, type SVGProps } from "react"
 import { sendContactMessage } from "@lib/data/contact"
 
-/* ─────────────── Social config ───────────────
-   Swap these hrefs for your real accounts. */
+/* ─────────────── Social config ─────────────── */
 const SOCIALS = [
-  { label: "Instagram", href: "https://instagram.com/monsooncoffee", Icon: InstagramIcon },
-  { label: "X / Twitter", href: "https://twitter.com/monsooncoffee", Icon: XIcon },
-  { label: "Facebook", href: "https://facebook.com/monsooncoffee", Icon: FacebookIcon },
-  { label: "YouTube", href: "https://youtube.com/@monsooncoffee", Icon: YouTubeIcon },
-  { label: "LinkedIn", href: "https://linkedin.com/company/monsooncoffee", Icon: LinkedInIcon },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/monsoon.coffee.co/",
+    Icon: InstagramIcon,
+  },
 ]
 
 export default function Contact() {
@@ -168,34 +167,3 @@ function InstagramIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
-function XIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M18.244 2H21.5l-7.5 8.57L22.5 22h-6.75l-5.29-6.91L4.4 22H1.14l8.02-9.17L1.5 2h6.92l4.78 6.32L18.244 2Zm-2.37 18h1.87L7.21 4H5.21l10.664 16Z" />
-    </svg>
-  )
-}
-
-function FacebookIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12Z" />
-    </svg>
-  )
-}
-
-function YouTubeIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M23.5 6.2a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.51A3.02 3.02 0 0 0 .5 6.2C0 8.08 0 12 0 12s0 3.92.5 5.8a3.02 3.02 0 0 0 2.12 2.14c1.88.51 9.38.51 9.38.51s7.5 0 9.38-.51a3.02 3.02 0 0 0 2.12-2.14C24 15.92 24 12 24 12s0-3.92-.5-5.8ZM9.6 15.57V8.43L15.82 12 9.6 15.57Z" />
-    </svg>
-  )
-}
-
-function LinkedInIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z" />
-    </svg>
-  )
-}

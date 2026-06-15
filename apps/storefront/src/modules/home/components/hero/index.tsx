@@ -30,12 +30,12 @@ export default function Hero() {
               Shop The Stash
             </CTAButton>
           </LocalizedClientLink>
-          <LocalizedClientLink href="/store">
+          <LocalizedClientLink href="/about">
             <OutlineButton
               className="w-full px-8 py-3 text-lg font-medium uppercase sm:w-auto sm:px-12 sm:py-4 sm:text-xl"
               color="ink"
             >
-              Our Method
+              About Us
             </OutlineButton>
           </LocalizedClientLink>
         </span>

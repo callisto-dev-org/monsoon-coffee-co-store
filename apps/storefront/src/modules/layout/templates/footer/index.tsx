@@ -25,23 +25,8 @@ const LEGAL_LINKS = [
 const SOCIALS = [
   {
     label: "Instagram",
-    href: "https://instagram.com/monsooncoffee",
+    href: "https://www.instagram.com/monsoon.coffee.co/",
     Icon: InstagramIcon,
-  },
-  {
-    label: "X / Twitter",
-    href: "https://twitter.com/monsooncoffee",
-    Icon: XIcon,
-  },
-  {
-    label: "Facebook",
-    href: "https://facebook.com/monsooncoffee",
-    Icon: FacebookIcon,
-  },
-  {
-    label: "YouTube",
-    href: "https://youtube.com/@monsooncoffee",
-    Icon: YouTubeIcon,
   },
 ]
 
@@ -154,26 +139,3 @@ function InstagramIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
-function XIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden {...props}>
-      <path d="M17.53 3H20.5l-6.47 7.39L21.75 21h-6.04l-4.73-6.18L5.56 21H2.59l6.92-7.9L2.25 3h6.2l4.27 5.65L17.53 3Zm-1.06 16.2h1.65L7.62 4.71H5.85L16.47 19.2Z" />
-    </svg>
-  )
-}
-
-function FacebookIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden {...props}>
-      <path d="M13.5 21v-8h2.7l.4-3.1h-3.1V7.9c0-.9.25-1.5 1.55-1.5h1.65V3.6c-.29-.04-1.27-.12-2.41-.12-2.39 0-4.03 1.46-4.03 4.14v2.18H7.5V13h2.75v8h3.25Z" />
-    </svg>
-  )
-}
-
-function YouTubeIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden {...props}>
-      <path d="M21.6 7.2a2.5 2.5 0 0 0-1.76-1.77C18.27 5 12 5 12 5s-6.27 0-7.84.43A2.5 2.5 0 0 0 2.4 7.2 26.1 26.1 0 0 0 2 12a26.1 26.1 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.76 1.77C5.73 19 12 19 12 19s6.27 0 7.84-.43a2.5 2.5 0 0 0 1.76-1.77A26.1 26.1 0 0 0 22 12a26.1 26.1 0 0 0-.4-4.8ZM10 15V9l5.2 3-5.2 3Z" />
-    </svg>
-  )
-}

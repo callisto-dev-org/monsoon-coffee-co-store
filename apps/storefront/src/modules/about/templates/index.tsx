@@ -24,7 +24,7 @@ const STATS = [
   { value: "100%", label: "Sustainably Sourced" },
   { value: "48HR", label: "Freshly Roasted" },
   { value: "12+", label: "Origin Partners" },
-  { value: "9", label: "Years Roasting" },
+  { value: "2026", label: "Roasting Since" },
 ]
 
 export default function AboutTemplate() {
@@ -66,14 +66,14 @@ export default function AboutTemplate() {
           </h2>
           <div className="flex flex-col gap-4 font-family-base text-base font-light leading-relaxed text-ink/75 sm:text-lg">
             <p>
-              We began in a cramped workshop with one secondhand roaster and a
-              stubborn refusal to compromise. Every morning was a study in heat,
-              time, and the temperament of a bean.
+              We started in 2026 with one small drum roaster and a stubborn
+              refusal to compromise. Every morning is a study in heat, time, and
+              the temperament of a bean.
             </p>
             <p>
-              Years later the obsession hasn&apos;t changed — only the scale.
-              We still cup every lot, still log every curve, and still believe a
-              roast should sound as deliberate as it tastes.
+              We&apos;re young, and that&apos;s the point — small enough to cup
+              every lot, log every curve, and obsess over each batch as if it
+              were our first. A roast should sound as deliberate as it tastes.
             </p>
           </div>
         </div>
