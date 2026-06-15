@@ -8,6 +8,7 @@ export type EventDetailInput = {
   date_label?: string | null
   event_date?: string | null
   seats_total?: number | null
+  booking_closed?: boolean
   description?: string | null
   highlights?: string[] | null
   images?: string[] | null
@@ -64,6 +65,7 @@ export const upsertEventDetailStep = createStep(
       date_label: b.date_label,
       event_date: b.event_date,
       seats_total: b.seats_total,
+      booking_closed: b.booking_closed,
       description: b.description,
       highlights: b.highlights,
       images: b.images,

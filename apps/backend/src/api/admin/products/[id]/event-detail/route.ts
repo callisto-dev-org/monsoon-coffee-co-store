@@ -20,6 +20,7 @@ const EVENT_FIELDS = [
   "start_time",
   "end_time",
   "seats_total",
+  "booking_closed",
   "description",
   "highlights",
   "images",

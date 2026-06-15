@@ -22,6 +22,7 @@ export async function GET(
       "date_label",
       "event_date",
       "seats_total",
+      "booking_closed",
     ],
     pagination: { take: 1000, skip: 0 },
   })

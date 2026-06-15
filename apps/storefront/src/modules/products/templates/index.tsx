@@ -107,6 +107,7 @@ const ProductTemplate = async ({
         cart={cart}
         coffeeProfile={coffeeProfile}
         isCoffeeBeans={isCoffeeBeans}
+        bookingClosed={!!eventDetail?.booking_closed}
       />
       {eventDetail && <MonsoonEventDetail event={eventDetail} />}
       <MonsoonProductCarousel items={highlightItems} />

@@ -2,6 +2,7 @@ import {
   Button,
   Input,
   Label,
+  Switch,
   Text,
   Textarea,
   toast,
@@ -22,6 +23,7 @@ export type EventDetail = {
   start_time?: string | null
   end_time?: string | null
   seats_total?: number | null
+  booking_closed?: boolean | null
   description?: string | null
   highlights?: string[] | null
   images?: string[] | null
@@ -132,6 +134,7 @@ export const EventEditor = ({ productId }: { productId: string }) => {
         start_time: d.start_time ?? "",
         end_time: d.end_time ?? "",
         seats_total: d.seats_total ?? null,
+        booking_closed: d.booking_closed ?? false,
         description: d.description ?? "",
       })
       setEventDate(d.event_date ? d.event_date.slice(0, 10) : "")
@@ -176,6 +179,7 @@ export const EventEditor = ({ productId }: { productId: string }) => {
             form.seats_total === null || form.seats_total === undefined
               ? null
               : Number(form.seats_total),
+          booking_closed: !!form.booking_closed,
           description: emptyToNull(form.description),
           highlights: cleanedHighlights.length ? cleanedHighlights : null,
           images: images.length ? images : null,
@@ -303,6 +307,19 @@ export const EventEditor = ({ productId }: { productId: string }) => {
               }
               placeholder="25"
             />
+          </Field>
+          <Field label="Booking">
+            <div className="flex items-center gap-2 pt-2">
+              <Switch
+                checked={!form.booking_closed}
+                onCheckedChange={(open) => set({ booking_closed: !open })}
+              />
+              <Text size="small" className="text-ui-fg-subtle">
+                {form.booking_closed
+                  ? "Closed — storefront shows “Booking Closed”"
+                  : "Open — accepting bookings"}
+              </Text>
+            </div>
           </Field>
           <Field label="Description (Markdown supported)" colSpan>
             <Textarea

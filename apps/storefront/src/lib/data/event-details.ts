@@ -13,6 +13,7 @@ export type EventDetail = {
   start_time?: string | null
   end_time?: string | null
   seats_total?: number | null
+  booking_closed?: boolean | null
   description?: string | null
   highlights?: string[] | null
   images?: string[] | null

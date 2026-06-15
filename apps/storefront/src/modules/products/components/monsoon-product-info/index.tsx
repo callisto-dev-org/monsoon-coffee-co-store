@@ -24,6 +24,9 @@ type Props = {
   cart: HttpTypes.StoreCart | null
   coffeeProfile?: CoffeeProfile | null
   isCoffeeBeans?: boolean
+  // Events only: booking has been stopped from the admin. Keeps the page
+  // visible but disables purchase and shows a "Booking Closed" state.
+  bookingClosed?: boolean
 }
 
 const optionsAsKeymap = (
@@ -41,6 +44,7 @@ export default function MonsoonProductInfo({
   cart,
   coffeeProfile,
   isCoffeeBeans = false,
+  bookingClosed = false,
 }: Props) {
   const router = useRouter()
   const pathname = usePathname()
@@ -393,7 +397,15 @@ export default function MonsoonProductInfo({
           </div>
         )}
 
-        {lineItem && inCartQty > 0 ? (
+        {bookingClosed ? (
+          <CTAButton
+            type="button"
+            disabled
+            className="w-full py-4 text-lg font-medium tracking-tighter mt-2 disabled:opacity-50"
+          >
+            Booking Closed
+          </CTAButton>
+        ) : lineItem && inCartQty > 0 ? (
           <div className="mt-2 flex flex-col gap-2">
             <span className="text-xs font-bold uppercase tracking-[0.18em] text-accent">
               In Your Cart
@@ -452,15 +464,18 @@ export default function MonsoonProductInfo({
           </CTAButton>
         )}
 
-        {/* Buy Now — express checkout for the selected variant. */}
-        <button
-          type="button"
-          onClick={handleBuyNow}
-          disabled={!selectedVariant || !inStock || isBuying || isAdding}
-          className="w-full border-2 border-ink bg-surface py-4 font-family-heading text-lg font-bold uppercase tracking-tighter text-ink hover:bg-ink hover:text-surface disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isBuying ? "Starting…" : "Buy Now"}
-        </button>
+        {/* Buy Now — express checkout for the selected variant. Hidden when
+            booking is closed (events). */}
+        {!bookingClosed && (
+          <button
+            type="button"
+            onClick={handleBuyNow}
+            disabled={!selectedVariant || !inStock || isBuying || isAdding}
+            className="w-full border-2 border-ink bg-surface py-4 font-family-heading text-lg font-bold uppercase tracking-tighter text-ink hover:bg-ink hover:text-surface disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isBuying ? "Starting…" : "Buy Now"}
+          </button>
+        )}
 
         {cartError && (
           <p

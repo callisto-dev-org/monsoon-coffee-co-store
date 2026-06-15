@@ -29,6 +29,11 @@ const EventDetail = model.define("event_detail", {
   // Capacity, e.g. 25 ("Limited to 25 seats").
   seats_total: model.number().nullable(),
 
+  // When true, booking is stopped: the storefront keeps the event page visible
+  // but disables the buy button and shows a "Booking Closed" state. Toggled
+  // from the Events admin without taking the product offline.
+  booking_closed: model.boolean().default(false),
+
   // Long intro / overview paragraph. Stored as Markdown.
   description: model.text().nullable(),
 

@@ -13,6 +13,7 @@ export const UpsertEventDetailSchema = z.object({
   start_time: z.string().nullable().optional(),
   end_time: z.string().nullable().optional(),
   seats_total: z.number().int().min(0).nullable().optional(),
+  booking_closed: z.boolean().optional(),
   description: z.string().nullable().optional(),
   highlights: z.array(z.string()).nullable().optional(),
   images: z.array(z.string()).nullable().optional(),
