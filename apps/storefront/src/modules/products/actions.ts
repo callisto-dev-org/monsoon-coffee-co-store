@@ -1,7 +1,5 @@
 "use server"
 
-import { redirect } from "next/navigation"
-
 import { addToCart, deleteLineItem, updateLineItem } from "@lib/data/cart"
 import { friendlyError } from "@lib/util/friendly-error"
 
@@ -29,20 +27,23 @@ export async function addToCartAction(input: {
   }
 }
 
-// Buy Now: add the variant, then go straight to checkout. On success this
-// redirects (and never returns); it only returns a result when the add fails.
+// Buy Now: add the variant to the cart, then let the CLIENT navigate to
+// checkout. We deliberately do NOT redirect() here: this action is awaited
+// imperatively inside a click handler, where a thrown NEXT_REDIRECT signal gets
+// caught by the caller's try/catch and surfaces as a spurious "Something went
+// wrong" flash right before navigation. Returning ok lets the client push to
+// checkout cleanly (same pattern as placeRazorpayOrder).
 export async function buyNowAction(input: {
   variantId: string
   quantity: number
   countryCode: string
-}): Promise<CartActionResult | void> {
+}): Promise<CartActionResult> {
   try {
     await addToCart(input)
+    return { ok: true }
   } catch (e) {
     return { ok: false, message: toMessage(e) }
   }
-  // Outside the try so Next's redirect signal isn't swallowed.
-  redirect(`/${input.countryCode}/checkout`)
 }
 
 export async function updateCartItemQuantityAction(input: {

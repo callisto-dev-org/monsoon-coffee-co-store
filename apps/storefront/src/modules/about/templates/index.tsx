@@ -6,17 +6,17 @@ const VALUES = [
   {
     no: "01",
     title: "Direct Sourcing",
-    body: "We build long-term relationships with farmers and co-ops, paying above market for lots that earn it. No anonymous brokers, no factory presets.",
+    body: "We build long-term relationships with farmers and co-ops, paying above market for lots that earn it.",
   },
   {
     no: "02",
     title: "Roasted To Order",
-    body: "Beans ship within 48 hours of the roast. Freshness isn't a tagline here — it's the whole point. You taste the difference in the first cup.",
+    body: "We roast to order. All beans are shipped within 48hrs of roasting them.",
   },
   {
     no: "03",
     title: "Obsessive Precision",
-    body: "Development time, drum speed, airflow, first crack — every variable is logged and dialed. We treat each batch as its own architectural project.",
+    body: "Development time, drum speed, airflow, first crack. We use modern roasting software and logging to ensure consistency across each batch.",
   },
 ]
 
@@ -42,7 +42,7 @@ export default function AboutTemplate() {
           <p className="max-w-2xl font-family-base text-lg font-light text-surface/80 sm:text-xl lg:text-2xl">
             Monsoon Coffee Co. is a small-batch roastery built on a single
             conviction: extraordinary coffee comes from obsessing over every
-            variable — not chasing convenience.
+            variable.
           </p>
         </div>
       </section>
@@ -67,14 +67,13 @@ export default function AboutTemplate() {
           </h2>
           <div className="flex flex-col gap-4 font-family-base text-base font-light leading-relaxed text-ink/75 sm:text-lg">
             <p>
-              We started in 2026 with one small drum roaster and a stubborn
-              refusal to compromise. Every morning is a study in heat, time, and
-              the temperament of a bean.
+              We started in 2026 with one goal. To showcase the true beauty of
+              Indian coffee through careful sourcing and meticulous roasting.
             </p>
             <p>
-              We&apos;re young, and that&apos;s the point — small enough to cup
-              every lot, log every curve, and obsess over each batch as if it
-              were our first. A roast should sound as deliberate as it tastes.
+              We roast in small batches and ensure every cup passes our rigorous
+              quality checks. We are constantly learning through every roast and
+              improving our method.
             </p>
           </div>
         </div>
@@ -133,12 +132,11 @@ export default function AboutTemplate() {
             The Promise
           </span>
           <h2 className="text-3xl font-bold uppercase leading-[0.95] text-ink sm:text-4xl lg:text-5xl">
-            Every Bag Is <br /> Accountable.
+            Great coffee with <br /> every bag.
           </h2>
           <p className="font-family-base text-base font-light leading-relaxed text-ink/75 sm:text-lg">
-            We don&apos;t hide behind blends or vague tasting notes. You get the
-            origin, the process, and the roast date — because coffee this good
-            has nothing to apologise for.
+            We want you to get the best value for your money. You shouldn&apos;t
+            have to pay exorbitant sums for good, consistent coffee.
           </p>
           <LocalizedClientLink
             href="/store"

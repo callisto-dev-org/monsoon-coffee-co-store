@@ -7,6 +7,7 @@ import { PincodeEstimateProvider } from "@modules/checkout/components/pincode-es
 import AddressPincodeCheck from "@modules/checkout/components/address-pincode-check"
 import CheckoutYourBag from "@modules/checkout/components/checkout-your-bag"
 import CheckoutAddressStep from "@modules/checkout/components/checkout-address-step"
+import PreparingPayment from "@modules/checkout/components/preparing-payment"
 
 type Props = {
   cart: HttpTypes.StoreCart
@@ -114,9 +115,7 @@ export default async function MonsoonCheckout({
                     Save your shipping address to place your order.
                   </p>
                 ) : !canPlaceOrder ? (
-                  <p className="font-family-base text-sm text-ink/65">
-                    Preparing secure payment… refresh if this persists.
-                  </p>
+                  <PreparingPayment cartId={cart.id} />
                 ) : (
                   <PlaceOrder
                     cart={cart}

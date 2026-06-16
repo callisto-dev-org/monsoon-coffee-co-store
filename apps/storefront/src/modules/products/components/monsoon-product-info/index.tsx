@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useEffect, useMemo, useRef, useState, useTransition } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { isEqual } from "lodash"
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
@@ -56,8 +56,13 @@ export default function MonsoonProductInfo({
   const [cartError, setCartError] = useState<string | null>(null)
   const [options, setOptions] = useState<Record<string, string | undefined>>({})
   const [optimisticQty, setOptimisticQty] = useState<number | null>(null)
-  const [isUpdatingQty, startQtyTransition] = useTransition()
   const autoAddTriggered = useRef(false)
+  // Debounced background sync for the quantity stepper. Clicks update the
+  // displayed number instantly (optimisticQty) and coalesce into a single
+  // backend write, so rapid +/- taps stay snappy and the buttons never lock up.
+  const qtySyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingQty = useRef<number | null>(null)
+  const lineIdRef = useRef<string | undefined>(undefined)
 
   useEffect(() => {
     if (product.variants?.length === 1) {
@@ -127,6 +132,12 @@ export default function MonsoonProductInfo({
     setOptimisticQty(null)
   }, [lineItem?.id, lineItem?.quantity])
 
+  // Keep the latest line id in a ref so the unmount flush below isn't tied to a
+  // stale closure (the stepper unmounts when qty hits 0 / the route changes).
+  useEffect(() => {
+    lineIdRef.current = lineItem?.id
+  }, [lineItem?.id])
+
   const inCartQty = optimisticQty ?? lineItem?.quantity ?? 0
 
   const maxQty = useMemo(() => {
@@ -138,6 +149,32 @@ export default function MonsoonProductInfo({
 
   const canIncrement = inCartQty < maxQty
 
+  // Push the pending quantity to the backend. Cancels any scheduled sync first
+  // so a debounced timer and a direct flush can't double-fire.
+  const flushQty = useCallback(async () => {
+    if (qtySyncTimer.current) {
+      clearTimeout(qtySyncTimer.current)
+      qtySyncTimer.current = null
+    }
+    const target = pendingQty.current
+    const lineId = lineIdRef.current
+    pendingQty.current = null
+    if (target == null || !lineId) return
+
+    const result = await updateCartItemQuantityAction({
+      lineId,
+      quantity: target,
+    })
+    if (!result.ok) {
+      setOptimisticQty(null)
+      setCartError(result.message)
+      return
+    }
+    // Reconcile other cart-aware UI (dropdown, totals) once, after the writes
+    // settle — not on every tap.
+    router.refresh()
+  }, [router])
+
   const changeQty = (nextQty: number) => {
     if (!lineItem?.id) return
     if (nextQty < 0) return
@@ -145,20 +182,35 @@ export default function MonsoonProductInfo({
 
     setCartError(null)
     setOptimisticQty(nextQty)
+    pendingQty.current = nextQty
 
-    startQtyTransition(async () => {
-      const result = await updateCartItemQuantityAction({
-        lineId: lineItem.id,
-        quantity: nextQty,
-      })
-      if (!result.ok) {
-        setOptimisticQty(null)
-        setCartError(result.message)
-        return
-      }
-      router.refresh()
-    })
+    if (qtySyncTimer.current) clearTimeout(qtySyncTimer.current)
+
+    // Hitting 0 deletes the line and unmounts this stepper, which would cancel a
+    // debounced timer — so sync that immediately. Otherwise debounce so a burst
+    // of taps becomes one write.
+    if (nextQty === 0) {
+      void flushQty()
+      return
+    }
+    qtySyncTimer.current = setTimeout(() => {
+      void flushQty()
+    }, 400)
   }
+
+  // Flush any pending quantity on unmount so a tap made just before navigating
+  // away isn't lost.
+  useEffect(() => {
+    return () => {
+      if (qtySyncTimer.current) clearTimeout(qtySyncTimer.current)
+      if (pendingQty.current != null && lineIdRef.current) {
+        void updateCartItemQuantityAction({
+          lineId: lineIdRef.current,
+          quantity: pendingQty.current,
+        })
+      }
+    }
+  }, [])
 
   const runAddToCart = async (variantId: string) => {
     setIsAdding(true)
@@ -207,12 +259,14 @@ export default function MonsoonProductInfo({
         quantity: 1,
         countryCode,
       })
-      // On success the action redirects to checkout and never returns a value;
-      // we only land here on failure.
-      if (result && !result.ok) {
+      if (!result.ok) {
         setCartError(result.message)
         setIsBuying(false)
+        return
       }
+      // Navigate client-side once the item is in the cart. Keep isBuying true so
+      // the button stays in its "Starting…" state until the route changes.
+      router.push(`/${countryCode}/checkout`)
     } catch (e) {
       setCartError(friendlyError(e))
       setIsBuying(false)
@@ -415,7 +469,6 @@ export default function MonsoonProductInfo({
                 type="button"
                 aria-label="Decrease quantity"
                 onClick={() => changeQty(inCartQty - 1)}
-                disabled={isUpdatingQty}
                 className="grid w-14 place-items-center border-r-2 border-ink bg-surface text-2xl font-black text-ink hover:bg-ink hover:text-surface disabled:opacity-50"
               >
                 −
@@ -433,7 +486,7 @@ export default function MonsoonProductInfo({
                 type="button"
                 aria-label="Increase quantity"
                 onClick={() => changeQty(inCartQty + 1)}
-                disabled={isUpdatingQty || !canIncrement}
+                disabled={!canIncrement}
                 className="grid w-14 place-items-center border-l-2 border-ink bg-surface text-2xl font-black text-ink hover:bg-ink hover:text-surface disabled:opacity-50"
               >
                 +
