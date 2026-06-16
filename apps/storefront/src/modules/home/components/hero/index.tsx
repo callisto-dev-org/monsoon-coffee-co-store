@@ -1,4 +1,3 @@
-import Image from "next/image"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import {
   CTAButton,
@@ -38,15 +37,6 @@ export default function Hero() {
               About Us
             </OutlineButton>
           </LocalizedClientLink>
-        </span>
-        <span className="pointer-events-none absolute bottom-6 right-6 hidden border-2 border-ink p-2 md:block lg:bottom-12 lg:right-12">
-          <Image
-            src="/monsoon/images/beans.png"
-            alt="Beans"
-            width={140}
-            height={140}
-            className="h-20 w-auto lg:h-28"
-          />
         </span>
       </div>
     </section>
