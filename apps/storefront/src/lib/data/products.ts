@@ -12,11 +12,16 @@ export const listProducts = async ({
   queryParams,
   countryCode,
   regionId,
+  noCache = false,
 }: {
   pageParam?: number
   queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductListParams
   countryCode?: string
   regionId?: string
+  // Skip the Next.js data cache and read straight from the backend. Use on
+  // surfaces that must always show live price/stock (e.g. the product detail
+  // page) rather than waiting for a revalidation webhook.
+  noCache?: boolean
 }): Promise<{
   response: { products: HttpTypes.StoreProduct[]; count: number }
   nextPage: number | null
@@ -49,9 +54,11 @@ export const listProducts = async ({
     ...(await getAuthHeaders()),
   }
 
-  const next = {
-    ...(await getCacheOptions("products")),
-  }
+  // no-store and the tag-based data cache are mutually exclusive: when noCache
+  // is set we read live and drop the tags entirely.
+  const cacheOpts: { next?: { tags?: string[] }; cache: RequestCache } = noCache
+    ? { cache: "no-store" }
+    : { next: { ...(await getCacheOptions("products")) }, cache: "force-cache" }
 
   return sdk.client
     .fetch<{ products: HttpTypes.StoreProduct[]; count: number }>(
@@ -67,8 +74,7 @@ export const listProducts = async ({
           ...queryParams,
         },
         headers,
-        next,
-        cache: "force-cache",
+        ...cacheOpts,
       }
     )
     .then(({ products, count }) => {

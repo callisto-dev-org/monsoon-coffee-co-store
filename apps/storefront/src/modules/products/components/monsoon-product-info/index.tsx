@@ -485,9 +485,6 @@ export default function MonsoonProductInfo({
             {cartError}
           </p>
         )}
-        <span className="text-sm opacity-75 text-center font-semibold">
-          SHIPS WITHIN 24 HOURS OF ROASTING
-        </span>
       </div>
     </div>
   )

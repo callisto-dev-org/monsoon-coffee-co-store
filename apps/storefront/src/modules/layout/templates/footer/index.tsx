@@ -111,7 +111,7 @@ export default function Footer() {
       <div className="border-t border-surface/15">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-6 py-6 text-xs uppercase tracking-[0.12em] text-surface/60 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12">
           <span>
-            © {new Date().getFullYear()} Monsoon Coffee Co. All rights reserved.
+           © Pluvio Coffee Works. All rights reserved.
           </span>
         </div>
       </div>
