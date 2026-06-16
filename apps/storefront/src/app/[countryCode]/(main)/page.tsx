@@ -6,11 +6,17 @@ import Newsletter from "@modules/home/components/newsletter"
 import ContactCta from "@modules/home/components/contact-cta"
 import CurrentLedger from "@modules/home/components/current-ledger"
 import { getRegion } from "@lib/data/regions"
+import JsonLd from "@modules/common/components/json-ld"
+import { SITE, organizationJsonLd, websiteJsonLd } from "@lib/util/seo"
 
 export const metadata: Metadata = {
-  title: "Monsoon Coffee Co.",
-  description:
-    "Small batch, specialty coffee — roasted with obsession. Powered by Medusa.",
+  title: {
+    absolute: `${SITE.name} — ${SITE.tagline}`,
+  },
+  description: SITE.description,
+  alternates: {
+    canonical: "/",
+  },
 }
 
 export default async function Home(props: {
@@ -22,6 +28,7 @@ export default async function Home(props: {
 
   return (
     <>
+      <JsonLd data={[organizationJsonLd(), websiteJsonLd(countryCode)]} />
       <Hero />
       {region ? (
         <CurrentLedger countryCode={countryCode} />

@@ -6,6 +6,7 @@ import { listRegions } from "@lib/data/regions"
 import { StoreCollection, StoreRegion } from "@medusajs/types"
 import CollectionTemplate from "@modules/collections/templates"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+import { SITE } from "@lib/util/seo"
 
 type Props = {
   params: Promise<{ handle: string; countryCode: string }>
@@ -72,12 +73,22 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     notFound()
   }
 
-  const metadata = {
-    title: `${collection.title} | Medusa Store`,
-    description: `${collection.title} collection`,
-  } as Metadata
+  const description =
+    (collection.metadata?.description as string | undefined) ??
+    `Shop the ${collection.title} collection at ${SITE.name} — small-batch specialty coffee, freshly roasted.`
 
-  return metadata
+  return {
+    title: collection.title,
+    description,
+    alternates: {
+      canonical: `/${params.countryCode}/collections/${collection.handle}`,
+    },
+    openGraph: {
+      title: `${collection.title} | ${SITE.name}`,
+      description,
+      type: "website",
+    },
+  }
 }
 
 export default async function CollectionPage(props: Props) {

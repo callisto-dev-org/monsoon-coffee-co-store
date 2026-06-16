@@ -6,6 +6,8 @@ import { listRegions } from "@lib/data/regions"
 import { HttpTypes, StoreRegion } from "@medusajs/types"
 import CategoryTemplate from "@modules/categories/templates"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+import JsonLd from "@modules/common/components/json-ld"
+import { SITE, absoluteUrl, breadcrumbJsonLd } from "@lib/util/seo"
 
 type Props = {
   params: Promise<{ category: string[]; countryCode: string }>
@@ -61,15 +63,20 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   try {
     const productCategory = await getCategoryByHandle(params.category)
 
-    const title = productCategory.name + " | Medusa Store"
-
-    const description = productCategory.description ?? `${title} category.`
+    const description =
+      productCategory.description ??
+      `Shop ${productCategory.name} at ${SITE.name} — small-batch specialty coffee, freshly roasted.`
 
     return {
-      title: `${title} | Medusa Store`,
+      title: productCategory.name,
       description,
       alternates: {
-        canonical: `${params.category.join("/")}`,
+        canonical: `/${params.countryCode}/categories/${params.category.join("/")}`,
+      },
+      openGraph: {
+        title: `${productCategory.name} | ${SITE.name}`,
+        description,
+        type: "website",
       },
     }
   } catch {
@@ -88,12 +95,26 @@ export default async function CategoryPage(props: Props) {
     notFound()
   }
 
+  const breadcrumb = breadcrumbJsonLd([
+    { name: "Home", url: absoluteUrl(`/${params.countryCode}`) },
+    { name: "Store", url: absoluteUrl(`/${params.countryCode}/store`) },
+    {
+      name: productCategory.name,
+      url: absoluteUrl(
+        `/${params.countryCode}/categories/${params.category.join("/")}`
+      ),
+    },
+  ])
+
   return (
-    <CategoryTemplate
-      category={productCategory}
-      sortBy={sortBy}
-      page={page}
-      countryCode={params.countryCode}
-    />
+    <>
+      <JsonLd data={breadcrumb} />
+      <CategoryTemplate
+        category={productCategory}
+        sortBy={sortBy}
+        page={page}
+        countryCode={params.countryCode}
+      />
+    </>
   )
 }

@@ -6,6 +6,13 @@ import { retrieveCustomer } from "@lib/data/customer"
 import { retrieveCart } from "@lib/data/cart"
 import ProductTemplate from "@modules/products/templates"
 import { HttpTypes } from "@medusajs/types"
+import JsonLd from "@modules/common/components/json-ld"
+import {
+  SITE,
+  absoluteUrl,
+  breadcrumbJsonLd,
+  productJsonLd,
+} from "@lib/util/seo"
 
 type Props = {
   params: Promise<{ countryCode: string; handle: string }>
@@ -98,13 +105,34 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     return { title: "Product unavailable | Monsoon Coffee Co." }
   }
 
+  const rawDescription =
+    product.description ?? product.subtitle ?? `${product.title} from ${SITE.name}.`
+  const description =
+    rawDescription.length > 160
+      ? `${rawDescription.slice(0, 157).trimEnd()}…`
+      : rawDescription
+  const title = `${product.title} | ${SITE.name}`
+  const canonical = `/${params.countryCode}/products/${handle}`
+  const images = product.thumbnail ? [product.thumbnail] : []
+
   return {
-    title: `${product.title} | Monsoon Coffee Co.`,
-    description: `${product.title}`,
+    title: product.title,
+    description,
+    alternates: {
+      canonical,
+    },
     openGraph: {
-      title: `${product.title} | Monsoon Coffee Co.`,
-      description: `${product.title}`,
-      images: product.thumbnail ? [product.thumbnail] : [],
+      title,
+      description,
+      type: "website",
+      url: canonical,
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images,
     },
   }
 }
@@ -177,14 +205,29 @@ export default async function ProductPage(props: Props) {
   const pricedProduct = productResult
   const images = getImagesForVariant(pricedProduct, selectedVariantId)
 
+  const productUrl = absoluteUrl(
+    `/${params.countryCode}/products/${params.handle}`
+  )
+  const structuredData = [
+    productJsonLd(pricedProduct, region, productUrl),
+    breadcrumbJsonLd([
+      { name: "Home", url: absoluteUrl(`/${params.countryCode}`) },
+      { name: "Store", url: absoluteUrl(`/${params.countryCode}/store`) },
+      { name: pricedProduct.title, url: productUrl },
+    ]),
+  ]
+
   return (
-    <ProductTemplate
-      product={pricedProduct}
-      region={region}
-      countryCode={params.countryCode}
-      images={images ?? []}
-      isAuthenticated={!!customer}
-      cart={cart}
-    />
+    <>
+      <JsonLd data={structuredData} />
+      <ProductTemplate
+        product={pricedProduct}
+        region={region}
+        countryCode={params.countryCode}
+        images={images ?? []}
+        isAuthenticated={!!customer}
+        cart={cart}
+      />
+    </>
   )
 }

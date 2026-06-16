@@ -5,7 +5,16 @@ import StoreTemplate from "@modules/store/templates"
 
 export const metadata: Metadata = {
   title: "Store",
-  description: "Explore all of our products.",
+  description:
+    "Browse the full Monsoon Coffee Co. catalogue — single origins, small-batch roasts and brew gear, freshly roasted to order.",
+  alternates: {
+    canonical: "/store",
+  },
+  openGraph: {
+    title: "Store | Monsoon Coffee Co.",
+    description:
+      "Browse the full Monsoon Coffee Co. catalogue — single origins, small-batch roasts and brew gear, freshly roasted to order.",
+  },
 }
 
 type Params = {
