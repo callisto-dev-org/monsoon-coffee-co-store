@@ -8,7 +8,6 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 function FeaturedProductCard({ product }: { product: HttpTypes.StoreProduct }) {
   const { cheapestPrice } = getProductPrice({ product })
   const thumbnail = product.thumbnail || "/monsoon/images/coffeebags.png"
-  const tags = (product.tags ?? []).map((t) => t.value).join(", ")
 
   return (
     <HighlightCard className="flex w-full min-w-0 flex-col gap-4 bg-surface p-4 sm:p-6">
@@ -32,10 +31,8 @@ function FeaturedProductCard({ product }: { product: HttpTypes.StoreProduct }) {
           <span className="whitespace-nowrap font-family-base text-base font-black tabular-nums text-ink sm:text-lg lg:text-2xl">
             {cheapestPrice?.calculated_price ?? ""}
           </span>
-          <span className="line-clamp-2 min-w-0 font-family-base text-[11px] uppercase leading-snug tracking-tight text-[var(--mc-secondary)] sm:text-sm">
-            {tags
-              ? `NOTES: ${tags.toUpperCase()}`
-              : product.subtitle ?? product.description ?? ""}
+          <span className="line-clamp-2 min-w-0 font-family-base text-[11px] leading-snug tracking-tight text-[var(--mc-secondary)] sm:text-sm">
+            {product.description ?? ""}
           </span>
         </span>
         <LocalizedClientLink href={`/products/${product.handle}`}>

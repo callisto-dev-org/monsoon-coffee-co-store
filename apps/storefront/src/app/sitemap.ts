@@ -16,7 +16,6 @@ const STATIC_PATHS = [
   "/privacy-policy",
   "/refund-policy",
   "/shipping-policy",
-  "/terms-and-conditions",
   "/terms-of-service",
   "/terms-of-use",
 ]
