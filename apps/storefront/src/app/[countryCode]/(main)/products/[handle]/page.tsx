@@ -169,15 +169,18 @@ export default async function ProductPage(props: Props) {
   const searchParams = await props.searchParams
   const selectedVariantId = searchParams.v_id
 
-  // Read product (price/stock) and cart (the in-progress order) live — never
-  // from the data cache — so the detail page can't show a stale price or a
-  // stale bag while waiting for a revalidation webhook.
+  // The cart (the in-progress order) is read live so the bag is never stale.
+  // The product is read from the tag-based data cache instead of uncached: its
+  // price/stock are kept fresh by the "products" revalidation tag (admin
+  // webhook), and caching it means router.refresh() after a cart mutation —
+  // which only invalidates the "carts" tag — re-uses the cached product instead
+  // of re-downloading every variant/price/image. That keeps add-to-cart and the
+  // quantity stepper snappy.
   const [region, productResult, customer, cart] = await Promise.all([
     getRegion(params.countryCode).catch((e: unknown) => e as Error),
     listProducts({
       countryCode: params.countryCode,
       queryParams: { handle: params.handle },
-      noCache: true,
     })
       .then(({ response }) => response.products[0] ?? null)
       .catch((e: unknown) => e as Error),

@@ -57,11 +57,13 @@ export default function MonsoonProductInfo({
   const [options, setOptions] = useState<Record<string, string | undefined>>({})
   const [optimisticQty, setOptimisticQty] = useState<number | null>(null)
   const autoAddTriggered = useRef(false)
-  // Debounced background sync for the quantity stepper. Clicks update the
-  // displayed number instantly (optimisticQty) and coalesce into a single
-  // backend write, so rapid +/- taps stay snappy and the buttons never lock up.
-  const qtySyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Background sync for the quantity stepper. Taps update the displayed number
+  // instantly (optimisticQty) and fire the write immediately; while one write is
+  // in flight, further taps just update pendingQty and the loop picks up the
+  // latest value — so rapid +/- stays snappy, never disables, and never fires
+  // overlapping requests.
   const pendingQty = useRef<number | null>(null)
+  const qtyInFlight = useRef(false)
   const lineIdRef = useRef<string | undefined>(undefined)
 
   useEffect(() => {
@@ -149,29 +151,34 @@ export default function MonsoonProductInfo({
 
   const canIncrement = inCartQty < maxQty
 
-  // Push the pending quantity to the backend. Cancels any scheduled sync first
-  // so a debounced timer and a direct flush can't double-fire.
-  const flushQty = useCallback(async () => {
-    if (qtySyncTimer.current) {
-      clearTimeout(qtySyncTimer.current)
-      qtySyncTimer.current = null
-    }
-    const target = pendingQty.current
+  // Drain pendingQty to the backend, one write at a time. Coalesces rapid taps:
+  // any taps that land while a write is in flight collapse into the latest
+  // value, which the loop sends next. Refreshes cart-aware UI (badge, dropdown,
+  // totals) once after the queue settles, not per tap.
+  const syncQty = useCallback(async () => {
+    if (qtyInFlight.current) return
     const lineId = lineIdRef.current
-    pendingQty.current = null
-    if (target == null || !lineId) return
+    if (!lineId) return
 
-    const result = await updateCartItemQuantityAction({
-      lineId,
-      quantity: target,
-    })
-    if (!result.ok) {
-      setOptimisticQty(null)
-      setCartError(result.message)
-      return
+    qtyInFlight.current = true
+    try {
+      while (pendingQty.current != null) {
+        const target = pendingQty.current
+        pendingQty.current = null
+        const result = await updateCartItemQuantityAction({
+          lineId,
+          quantity: target,
+        })
+        if (!result.ok) {
+          pendingQty.current = null
+          setOptimisticQty(null)
+          setCartError(result.message)
+          return
+        }
+      }
+    } finally {
+      qtyInFlight.current = false
     }
-    // Reconcile other cart-aware UI (dropdown, totals) once, after the writes
-    // settle — not on every tap.
     router.refresh()
   }, [router])
 
@@ -183,34 +190,8 @@ export default function MonsoonProductInfo({
     setCartError(null)
     setOptimisticQty(nextQty)
     pendingQty.current = nextQty
-
-    if (qtySyncTimer.current) clearTimeout(qtySyncTimer.current)
-
-    // Hitting 0 deletes the line and unmounts this stepper, which would cancel a
-    // debounced timer — so sync that immediately. Otherwise debounce so a burst
-    // of taps becomes one write.
-    if (nextQty === 0) {
-      void flushQty()
-      return
-    }
-    qtySyncTimer.current = setTimeout(() => {
-      void flushQty()
-    }, 400)
+    void syncQty()
   }
-
-  // Flush any pending quantity on unmount so a tap made just before navigating
-  // away isn't lost.
-  useEffect(() => {
-    return () => {
-      if (qtySyncTimer.current) clearTimeout(qtySyncTimer.current)
-      if (pendingQty.current != null && lineIdRef.current) {
-        void updateCartItemQuantityAction({
-          lineId: lineIdRef.current,
-          quantity: pendingQty.current,
-        })
-      }
-    }
-  }, [])
 
   const runAddToCart = async (variantId: string) => {
     setIsAdding(true)

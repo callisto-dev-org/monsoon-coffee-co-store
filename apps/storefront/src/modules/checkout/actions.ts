@@ -288,6 +288,31 @@ export async function placeRazorpayOrder(input: {
   }
 }
 
+// Full idempotent "make checkout payable" sequence, callable from the client to
+// recover when the server render couldn't prepare payment (a transient backend
+// hiccup during shipping selection or session creation leaves no pending
+// session). Ensures shipping is attached FIRST — the Razorpay order amount must
+// include shipping — then ensures the payment session, then reports whether a
+// pending session now exists so the caller knows if it can stop retrying.
+export async function ensureCheckoutReady(): Promise<{ ready: boolean }> {
+  try {
+    await ensureShippingSelected()
+  } catch {
+    // best-effort
+  }
+  try {
+    await ensureRazorpaySession()
+  } catch {
+    // best-effort
+  }
+
+  const cart = await retrieveCart(undefined, undefined, { noCache: true })
+  const ready = !!cart?.payment_collection?.payment_sessions?.some(
+    (s) => s.status === "pending"
+  )
+  return { ready }
+}
+
 // Auto-create the Razorpay payment session when none is pending yet. Idempotent:
 // if a pending session already exists we leave it, so re-renders of the checkout
 // page don't spin up duplicate Razorpay orders.
