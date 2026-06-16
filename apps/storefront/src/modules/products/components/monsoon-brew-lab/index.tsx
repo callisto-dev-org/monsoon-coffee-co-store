@@ -328,6 +328,7 @@ function ProtocolDetail({ protocol }: { protocol: BrewProtocol }) {
             src={protocol.image || "/monsoon/images/Product.png"}
             alt={`${protocol.id} brew kettle`}
             fill
+            sizes="(min-width: 1101px) 50vw, 100vw"
             className="object-cover"
           />
         </div>
@@ -425,6 +426,7 @@ export default function MonsoonBrewLab({ brews = [] }: { brews?: BrewRecipe[] })
               src="/monsoon/images/Product.png"
               alt="Brew Lab"
               fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
               className="object-cover"
             />
           </div>

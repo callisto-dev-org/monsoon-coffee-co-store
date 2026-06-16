@@ -54,6 +54,7 @@ export default function AboutTemplate() {
             src="/monsoon/images/about1.png"
             alt="Inside the roastery"
             fill
+            sizes="(min-width: 1024px) 50vw, 100vw"
             className="object-cover"
           />
         </div>
@@ -156,6 +157,7 @@ export default function AboutTemplate() {
             src="/monsoon/images/about3.png"
             alt="Freshly roasted coffee"
             fill
+            sizes="(min-width: 1024px) 50vw, 100vw"
             className="object-cover"
           />
           <span className="absolute bottom-4 left-4 bg-ink p-3 text-2xl font-bold uppercase text-surface sm:bottom-6 sm:left-6 sm:p-5 sm:text-4xl lg:text-5xl">

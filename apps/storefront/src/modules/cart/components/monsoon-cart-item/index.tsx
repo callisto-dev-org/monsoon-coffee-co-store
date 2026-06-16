@@ -48,6 +48,7 @@ export default function MonsoonCartItem({ item, currencyCode }: Props) {
           src={thumbnail}
           alt={item.product_title ?? "Product"}
           fill
+          sizes="(min-width: 640px) 208px, 88px"
           className="object-cover"
         />
       </div>

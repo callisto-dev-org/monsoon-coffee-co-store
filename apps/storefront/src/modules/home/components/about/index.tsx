@@ -46,6 +46,7 @@ export default function AboutSection() {
                 src="/monsoon/images/about1.png"
                 alt="About 1"
                 fill
+                sizes="(min-width: 1024px) 35vw, 100vw"
                 className="object-cover"
               />
             </div>
@@ -81,6 +82,7 @@ export default function AboutSection() {
                   src="/monsoon/images/about2.png"
                   alt="About 2"
                   fill
+                  sizes="(min-width: 1024px) 35vw, 100vw"
                   className="object-cover"
                 />
               </div>
@@ -97,6 +99,7 @@ export default function AboutSection() {
             src="/monsoon/images/about3.png"
             alt="About 3"
             fill
+            sizes="(min-width: 1024px) 50vw, 100vw"
             className="object-cover"
           />
           <span className="absolute bottom-3 left-3 bg-accent p-3 font-family-heading text-3xl font-bold uppercase text-surface sm:bottom-6 sm:left-6 sm:p-6 sm:text-6xl lg:bottom-8 lg:left-8 lg:p-8 lg:text-7xl">

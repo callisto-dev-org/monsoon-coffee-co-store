@@ -29,6 +29,7 @@ export default function CheckoutYourBag({ cart }: Props) {
                 src={item.thumbnail || "/monsoon/images/coffeebags.png"}
                 alt={item.product_title ?? "Product"}
                 fill
+                sizes="64px"
                 className="object-cover"
               />
             </div>
