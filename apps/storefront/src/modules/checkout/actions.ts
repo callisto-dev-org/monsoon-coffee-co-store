@@ -13,6 +13,7 @@ import {
   setShippingMethod,
   setShippingMethods,
   updateCart,
+  validateCartInventory,
 } from "@lib/data/cart"
 
 // The only payment provider offered at checkout. The picker UI was removed —
@@ -241,6 +242,45 @@ export async function placeOrderAction(formData: FormData) {
     redirect(
       `/${countryCode}/checkout?error=${encodeURIComponent(message)}`
     )
+  }
+}
+
+export type CheckCartInventoryResult =
+  | { ok: true }
+  | { ok: false; error: string }
+
+/**
+ * Pre-payment guard: verify the cart still has stock against LIVE inventory
+ * before opening the Razorpay window. Catches a stale cart (stock lowered, or
+ * another shopper took the last unit) up front so the customer isn't charged
+ * for an order that completeCart would later reject. Fails open on unexpected
+ * errors — completeCart remains the authoritative gate.
+ */
+export async function checkCartInventory(
+  cartId: string
+): Promise<CheckCartInventoryResult> {
+  try {
+    const result = await validateCartInventory(cartId)
+    if (result.ok) return { ok: true }
+
+    const lines = result.issues.map((issue) => {
+      if (issue.available <= 0) {
+        return `${issue.title} is now out of stock`
+      }
+      return `${issue.title}: only ${issue.available} left (you have ${issue.requested})`
+    })
+
+    const error =
+      lines.length === 1
+        ? `${lines[0]}. Please update your cart before paying.`
+        : `Some items are no longer available:\n${lines
+            .map((l) => `• ${l}`)
+            .join("\n")}\nPlease update your cart before paying.`
+
+    return { ok: false, error }
+  } catch {
+    // Don't block checkout on a validation hiccup — completeCart still guards.
+    return { ok: true }
   }
 }
 

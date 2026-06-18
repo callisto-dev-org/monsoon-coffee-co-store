@@ -187,6 +187,104 @@ export async function addToCart({
     .catch(medusaError => {console.error("Error adding item to cart", medusaError); throw medusaError})
 }
 
+export type CartInventoryIssue = {
+  lineId: string
+  title: string
+  requested: number
+  available: number
+}
+
+export type ValidateCartInventoryResult =
+  | { ok: true }
+  | { ok: false; issues: CartInventoryIssue[] }
+
+/**
+ * Re-checks every line item in the cart against LIVE backend inventory.
+ *
+ * Medusa only reserves stock at cart completion, not when an item is added, so
+ * a cart can go stale between "added" and "place order" (stock lowered in admin,
+ * or another shopper buying the last unit). This is meant to run *before* the
+ * customer is charged so a stale cart is caught up front rather than failing
+ * after payment. It is advisory — the authoritative gate is still
+ * completeCart() — and deliberately fails open: variants it can't resolve are
+ * left for the backend to reject.
+ */
+export async function validateCartInventory(
+  cartId?: string
+): Promise<ValidateCartInventoryResult> {
+  // Read live (noCache) — a cached cart would defeat the point of revalidating.
+  const cart = await retrieveCart(cartId, "id,region_id,*items", {
+    noCache: true,
+  })
+
+  if (!cart?.items?.length) {
+    return { ok: true }
+  }
+
+  const productIds = Array.from(
+    new Set(
+      cart.items
+        .map((item) => item.product_id)
+        .filter((id): id is string => Boolean(id))
+    )
+  )
+
+  if (!productIds.length) {
+    return { ok: true }
+  }
+
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  // Pull fresh inventory for just the cart's products, straight from the
+  // backend (no-store) so we don't read a stale cached value.
+  const { products } = await sdk.client.fetch<{
+    products: HttpTypes.StoreProduct[]
+  }>(`/store/products`, {
+    method: "GET",
+    query: {
+      id: productIds,
+      limit: productIds.length,
+      region_id: cart.region_id,
+      fields:
+        "id,+variants.inventory_quantity,+variants.manage_inventory,+variants.allow_backorder",
+    },
+    headers,
+    cache: "no-store",
+  })
+
+  const variantById = new Map<string, HttpTypes.StoreProductVariant>()
+  for (const product of products ?? []) {
+    for (const variant of product.variants ?? []) {
+      if (variant.id) variantById.set(variant.id, variant)
+    }
+  }
+
+  const issues: CartInventoryIssue[] = []
+  for (const item of cart.items) {
+    if (!item.variant_id) continue
+    const variant = variantById.get(item.variant_id)
+    // Can't resolve it — let completeCart be the authority.
+    if (!variant) continue
+    // Untracked or backorder-enabled variants can never oversell.
+    if (!variant.manage_inventory) continue
+    if (variant.allow_backorder) continue
+
+    const available = variant.inventory_quantity ?? 0
+    if (item.quantity > available) {
+      issues.push({
+        lineId: item.id,
+        title: item.product_title ?? item.title ?? "An item in your cart",
+        requested: item.quantity,
+        available,
+      })
+    }
+  }
+
+  return issues.length ? { ok: false, issues } : { ok: true }
+}
+
 export async function updateLineItem({
   lineId,
   quantity,

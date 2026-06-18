@@ -4,7 +4,10 @@ import { useCallback, useEffect, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
 
-import { placeRazorpayOrder } from "@modules/checkout/actions"
+import {
+  checkCartInventory,
+  placeRazorpayOrder,
+} from "@modules/checkout/actions"
 
 type RazorpaySessionData = {
   id?: string
@@ -108,6 +111,17 @@ export default function RazorpayButton({
     if (!ok || !window.Razorpay) {
       setLoading(false)
       setError("Failed to load Razorpay checkout.")
+      return
+    }
+
+    // Re-check stock against live inventory BEFORE charging. The cart may have
+    // gone stale (stock lowered, or another shopper took the last unit) since
+    // these items were added; catching it here avoids charging for an order
+    // that cart completion would reject after payment.
+    const inventory = await checkCartInventory(cart.id)
+    if (!inventory.ok) {
+      setLoading(false)
+      setError(inventory.error)
       return
     }
 

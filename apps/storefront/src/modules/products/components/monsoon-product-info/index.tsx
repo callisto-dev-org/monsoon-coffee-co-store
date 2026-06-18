@@ -194,8 +194,13 @@ export default function MonsoonProductInfo({
   }
 
   const runAddToCart = async (variantId: string) => {
-    setIsAdding(true)
     setCartError(null)
+    // Optimistically reflect the add so the quantity stepper appears instantly
+    // — the slow part is the server round-trip, so we don't block the UI on it.
+    // The +/- buttons stay inert until the real line item arrives (changeQty
+    // guards on lineItem?.id); we roll back below if the write fails.
+    setOptimisticQty(inCartQty + 1)
+    setIsAdding(true)
     try {
       const result = await addToCartAction({
         variantId,
@@ -203,13 +208,16 @@ export default function MonsoonProductInfo({
         countryCode,
       })
       if (!result.ok) {
+        setOptimisticQty(null)
         setCartError(result.message)
         return
       }
       // Just add to the bag — no redirect. The cart dropdown auto-opens to
       // confirm, and the in-page quantity stepper appears for this variant.
+      // router.refresh() reconciles the optimistic qty with server state.
       router.refresh()
     } catch (e) {
+      setOptimisticQty(null)
       console.error("Error adding to cart", e)
       setCartError(friendlyError(e))
     } finally {
@@ -440,7 +448,7 @@ export default function MonsoonProductInfo({
           >
             Booking Closed
           </CTAButton>
-        ) : lineItem && inCartQty > 0 ? (
+        ) : inCartQty > 0 ? (
           <div className="mt-2 flex flex-col gap-2">
             <span className="text-xs font-bold uppercase tracking-[0.18em] text-accent">
               In Your Cart
