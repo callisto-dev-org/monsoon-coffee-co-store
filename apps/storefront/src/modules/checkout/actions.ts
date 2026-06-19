@@ -82,8 +82,15 @@ function readAddressFields(
   if (values.postal_code && !/^\d+$/.test(values.postal_code)) {
     errors[prefix + "postal_code"] = "Numbers only"
   }
-  if (values.phone && !/^[0-9+\-\s()]{6,}$/.test(values.phone)) {
-    errors[prefix + "phone"] = "Enter a valid phone"
+  if (values.phone) {
+    // Shipmozo (and our courier push) only accept a 10-digit national number,
+    // so reject anything that isn't exactly 10 digits — including longer input
+    // with a country code. Stripping non-digits keeps "+91", spaces and dashes
+    // from tripping the check.
+    const phoneDigits = values.phone.replace(/\D/g, "")
+    if (phoneDigits.length !== 10) {
+      errors[prefix + "phone"] = "Enter a 10-digit phone number"
+    }
   }
 
   return { values, errors }

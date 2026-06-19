@@ -27,6 +27,20 @@ export const digitsToNumber = (raw: string | null | undefined): number => {
   return stripped ? Number(stripped) : 0
 }
 
+/**
+ * Normalize a phone to the 10-digit national number Shipmozo demands (it
+ * rejects anything that isn't exactly 10 digits with "The consignee phone must
+ * be 10 digits"). Strips non-digits, then keeps the last 10 — which drops a
+ * "+91" country code or a leading trunk "0". Returns 0 when fewer than 10
+ * digits remain so callers can treat it as missing.
+ */
+export const toPhone10 = (raw: string | null | undefined): number => {
+  if (!raw) return 0
+  const digits = String(raw).replace(/\D/g, "")
+  if (digits.length < 10) return 0
+  return Number(digits.slice(-10))
+}
+
 /** Format a Date (or now) as YYYY-MM-DD — required by /push-order. */
 export const formatOrderDate = (d: Date = new Date()): string => {
   const yyyy = d.getFullYear()

@@ -34,6 +34,7 @@ function Field({
   autoComplete,
   error,
   numericOnly,
+  maxLength,
 }: {
   name: string
   label: string
@@ -44,6 +45,7 @@ function Field({
   autoComplete?: string
   error?: string
   numericOnly?: boolean
+  maxLength?: number
 }) {
   return (
     <label className="grid gap-2">
@@ -58,11 +60,16 @@ function Field({
         autoComplete={autoComplete}
         defaultValue={defaultValue}
         required={required}
+        maxLength={maxLength}
         onInput={
           numericOnly
             ? (e) => {
                 const t = e.currentTarget
-                t.value = t.value.replace(/\D/g, "")
+                // Strip non-digits, then hard-cap at maxLength so a pasted
+                // number with a country code can't exceed the limit.
+                let next = t.value.replace(/\D/g, "")
+                if (maxLength) next = next.slice(0, maxLength)
+                t.value = next
               }
             : undefined
         }
@@ -417,6 +424,7 @@ export default function MonsoonAddressForm({
           error={state.errors.phone}
           required
           numericOnly
+          maxLength={10}
         />
           </>
         )}
@@ -556,6 +564,7 @@ export default function MonsoonAddressForm({
             error={state.errors.ship_phone}
             required
             numericOnly
+            maxLength={10}
           />
         </div>
       )}

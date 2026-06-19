@@ -37,6 +37,7 @@ import {
   ratePrice,
   round2,
   toMajorUnits,
+  toPhone10,
 } from "../utils"
 
 type InjectedDependencies = {
@@ -356,13 +357,13 @@ class ShipmozoProviderService extends AbstractFulfillmentProviderService {
       .join(" ")
       .trim()
 
-    const consigneePhone = digitsToNumber(address.phone)
+    const consigneePhone = toPhone10(address.phone)
     // Optional alt phone — Shipmozo requires it to be *different* from the
     // main phone when present. We only include it if the customer actually
     // entered a distinct one on the address (none of our flows do today, so
     // this is effectively always undefined).
     const altPhoneRaw = (address as { alternate_phone?: string }).alternate_phone
-    const altPhone = altPhoneRaw ? digitsToNumber(altPhoneRaw) : 0
+    const altPhone = altPhoneRaw ? toPhone10(altPhoneRaw) : 0
     const includeAltPhone = altPhone > 0 && altPhone !== consigneePhone
 
     const payload: ShipmozoPushOrderRequest = {
@@ -515,7 +516,7 @@ class ShipmozoProviderService extends AbstractFulfillmentProviderService {
       order_id: orderRef,
       order_date: formatOrderDate(),
       pickup_name: fullName || "Customer",
-      pickup_phone: digitsToNumber(address.phone),
+      pickup_phone: toPhone10(address.phone),
       pickup_address_line_one: address.address_1 ?? "",
       pickup_address_line_two: address.address_2 ?? undefined,
       pickup_pin_code: digitsToNumber(address.postal_code),
