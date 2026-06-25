@@ -27,6 +27,21 @@ const STATS = [
   { value: "2026", label: "Roasting Since" },
 ]
 
+const CLIENTS = [
+  {
+    no: "01",
+    name: "Vinyl And Brew",
+    location: "Alwarpet, Chennai",
+    body: "A specialty coffee shop and audiophile haven in Alwarpet. Pairing the warm, analog sound of vintage vinyl with meticulously crafted specialty roasts, it offers a relaxed escape from the city's hustle — the perfect neighbourhood hub for music lovers and coffee enthusiasts alike.",
+  },
+  {
+    no: "02",
+    name: "Miraj Cafe",
+    location: "Anna Nagar, Chennai",
+    body: "A vibrant, contemporary hangout in the heart of Anna Nagar. Blending artisanal coffee and specialty brews with global comfort food, it offers an energetic yet cozy vibe — perfect for a morning caffeine fix, slow weekend brunches, or catching up with friends over a great cup.",
+  },
+]
+
 export default function AboutTemplate() {
   return (
     <div className="w-full font-family-heading">
@@ -122,6 +137,68 @@ export default function AboutTemplate() {
               </span>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ───────── Clients ───────── */}
+      <section className="relative overflow-hidden border-t-4 border-ink bg-ink px-5 py-16 text-surface sm:px-8 sm:py-20 lg:px-16 lg:py-28">
+        {/* oversized watermark */}
+        <span className="pointer-events-none absolute -right-4 -top-8 select-none text-[7rem] font-black uppercase leading-none text-surface/[0.04] sm:text-[11rem] lg:-top-10 lg:text-[15rem]">
+          Partners
+        </span>
+
+        <div className="relative mx-auto max-w-6xl">
+          <div className="flex flex-col gap-6 border-b border-surface/15 pb-8 sm:flex-row sm:items-end sm:justify-between sm:gap-10">
+            <div className="flex flex-col gap-4">
+              
+              <h2 className="max-w-3xl text-3xl font-bold uppercase leading-[0.95] sm:text-5xl lg:text-6xl">
+                The Cafes Pouring <br /> Our Coffee.
+              </h2>
+            </div>
+          </div>
+
+          <div className="mt-10 grid grid-cols-1 gap-5 lg:mt-14 lg:grid-cols-2">
+            {CLIENTS.map((c) => (
+              <article
+                key={c.name}
+                className="group relative flex flex-col gap-6 overflow-hidden border border-surface/15 bg-surface/[0.03] p-7 transition-colors duration-300 hover:border-accent sm:p-10"
+              >
+                {/* accent sweep on hover */}
+                <span className="pointer-events-none absolute inset-x-0 bottom-0 h-1 origin-left scale-x-0 bg-accent transition-transform duration-500 group-hover:scale-x-100" />
+
+                <span className="font-family-base text-5xl font-black leading-none text-accent sm:text-6xl">
+                  {c.no}
+                </span>
+
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-2xl font-bold uppercase leading-tight transition-colors group-hover:text-accent sm:text-3xl">
+                    {c.name}
+                  </h3>
+                  <span className="flex items-center gap-2 font-family-base text-xs font-medium uppercase tracking-[0.16em] text-surface/55 sm:text-sm">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      className="h-3.5 w-3.5 shrink-0 text-accent"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M12 21s7-5.686 7-11a7 7 0 10-14 0c0 5.314 7 11 7 11z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinejoin="round"
+                      />
+                      <circle cx="12" cy="10" r="2.5" fill="currentColor" />
+                    </svg>
+                    {c.location}
+                  </span>
+                </div>
+
+                <p className="font-family-base text-base font-light leading-relaxed text-surface/70">
+                  {c.body}
+                </p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
