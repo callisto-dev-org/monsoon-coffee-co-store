@@ -143,38 +143,35 @@ export default function AboutTemplate() {
       {/* ───────── Clients ───────── */}
       <section className="relative overflow-hidden border-t-4 border-ink bg-ink px-5 py-16 text-surface sm:px-8 sm:py-20 lg:px-16 lg:py-28">
         {/* oversized watermark */}
-        <span className="pointer-events-none absolute -right-4 -top-8 select-none text-[7rem] font-black uppercase leading-none text-surface/[0.04] sm:text-[11rem] lg:-top-10 lg:text-[15rem]">
+        <span className="pointer-events-none absolute -right-3 -top-4 select-none text-[3.5rem] font-black uppercase leading-none text-surface/[0.04] xsmall:text-[5rem] sm:-top-6 sm:text-[8rem] lg:-top-10 lg:text-[15rem]">
           Partners
         </span>
 
         <div className="relative mx-auto max-w-6xl">
-          <div className="flex flex-col gap-6 border-b border-surface/15 pb-8 sm:flex-row sm:items-end sm:justify-between sm:gap-10">
-            <div className="flex flex-col gap-4">
-              
-              <h2 className="max-w-3xl text-3xl font-bold uppercase leading-[0.95] sm:text-5xl lg:text-6xl">
-                The Cafes Pouring <br /> Our Coffee.
-              </h2>
-            </div>
+          <div className="border-b border-surface/15 pb-6 sm:pb-8">
+            <h2 className="max-w-3xl text-[clamp(1.75rem,8vw,3rem)] font-bold uppercase leading-[0.95] sm:text-5xl lg:text-6xl">
+              The Cafes Pouring <br /> Our Coffee.
+            </h2>
           </div>
 
-          <div className="mt-10 grid grid-cols-1 gap-5 lg:mt-14 lg:grid-cols-2">
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:mt-10 sm:gap-5 lg:mt-14 lg:grid-cols-2">
             {CLIENTS.map((c) => (
               <article
                 key={c.name}
-                className="group relative flex flex-col gap-6 overflow-hidden border border-surface/15 bg-surface/[0.03] p-7 transition-colors duration-300 hover:border-accent sm:p-10"
+                className="group relative flex flex-col gap-5 overflow-hidden border border-surface/15 bg-surface/[0.03] p-6 transition-colors duration-300 hover:border-accent sm:gap-6 sm:p-10"
               >
                 {/* accent sweep on hover */}
                 <span className="pointer-events-none absolute inset-x-0 bottom-0 h-1 origin-left scale-x-0 bg-accent transition-transform duration-500 group-hover:scale-x-100" />
 
-                <span className="font-family-base text-5xl font-black leading-none text-accent sm:text-6xl">
+                <span className="font-family-base text-4xl font-black leading-none text-accent sm:text-6xl">
                   {c.no}
                 </span>
 
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-2xl font-bold uppercase leading-tight transition-colors group-hover:text-accent sm:text-3xl">
+                  <h3 className="text-xl font-bold uppercase leading-tight transition-colors group-hover:text-accent sm:text-3xl">
                     {c.name}
                   </h3>
-                  <span className="flex items-center gap-2 font-family-base text-xs font-medium uppercase tracking-[0.16em] text-surface/55 sm:text-sm">
+                  <span className="flex items-center gap-2 font-family-base text-[0.7rem] font-medium uppercase tracking-[0.16em] text-surface/55 sm:text-sm">
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
@@ -193,7 +190,7 @@ export default function AboutTemplate() {
                   </span>
                 </div>
 
-                <p className="font-family-base text-base font-light leading-relaxed text-surface/70">
+                <p className="font-family-base text-sm font-light leading-relaxed text-surface/70 sm:text-base">
                   {c.body}
                 </p>
               </article>
