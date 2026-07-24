@@ -1,6 +1,6 @@
-import type { SVGProps } from "react"
-
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+
+const CONTACT_EMAIL = "Aneesh@monsooncoffee.co"
 
 const SHOP_LINKS = [
   { label: "Shop All", href: "/store" },
@@ -73,6 +73,20 @@ export default function Footer() {
               Small-batch coffee, roasted with intent — dispatched within 48
               hours of the roast.
             </p>
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-family-base text-sm text-surface/70">
+              <span className="font-family-heading text-[11px] font-semibold uppercase tracking-[0.22em] text-surface/45">
+                Email:
+              </span>
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="inline-flex items-center gap-2 text-surface transition-colors hover:text-accent"
+              >
+                <MailIcon />
+                <span className="normal-case tracking-normal">
+                  {CONTACT_EMAIL}
+                </span>
+              </a>
+            </p>
             <span className="font-family-heading text-[11px] font-semibold uppercase tracking-[0.22em] text-surface/55">
               A{" "}
               <LocalizedClientLink
@@ -109,18 +123,42 @@ export default function Footer() {
       {/* ───────── Bottom bar ───────── */}
       <div className="border-t border-surface/15">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-6 py-6 text-xs uppercase tracking-[0.12em] text-surface/60 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12">
-          <span>
-           © 2026 Pluvio Coffee Works. All rights reserved.
-          </span>
+          <span>© 2026 Pluvio Coffee Works. All rights reserved.</span>
         </div>
       </div>
     </footer>
   )
 }
 
-/* ─────────────── Social icons ─────────────── */
+function MailIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      className="h-4 w-4 shrink-0 text-accent"
+    >
+      <rect
+        x="3"
+        y="5"
+        width="18"
+        height="14"
+        rx="3"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M4.5 7.5 12 13l7.5-5.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
 
-function InstagramIcon(props: SVGProps<SVGSVGElement>) {
+function InstagramIcon(props: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden {...props}>
       <rect
@@ -137,4 +175,5 @@ function InstagramIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
 

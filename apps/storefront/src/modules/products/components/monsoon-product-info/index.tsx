@@ -378,7 +378,7 @@ export default function MonsoonProductInfo({
             )}
         </span>
         {product.description && (
-          <p className="text-base lg:text-lg opacity-75">
+          <p className="text-base lg:text-lg opacity-75 whitespace-pre-wrap">
             {product.description}
           </p>
         )}
